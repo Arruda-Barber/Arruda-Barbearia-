@@ -12,14 +12,15 @@ const profissionais = {
 
 // DURAÇÃO DOS SERVIÇOS
 const servicos = {
-  "Cabelo": 35,
+  "Corte degradê": 35,
+  "Corte degradê (navalhado)": 35,
+  "Corte social": 35,
   "Cabelo e barba": 55,
-  "Barba": 25,
-  "Sobrancelha com corte": 5,
-  "Apenas sobrancelha": 10,
+  "Cabelo, barba e sobrancelha": 60,
+  "Corte 2 pentes": 25,
+  "Corte 1 pente": 20,
   "Pezinhos": 15,
-  "1 pente e pezinho": 20,
-  "2 pentes e pezinho": 25
+  "Sobrancelha": 10
 };
 
 // HORÁRIO DE FUNCIONAMENTO
