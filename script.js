@@ -5,9 +5,9 @@
 
 // WHATSAPP DOS PROFISSIONAIS
 const profissionais = {
-  "Arruda": "55992294941",
-  "Felipe": "55991274993",
-  "Thalita": "55991692449"
+  "Arruda": "5555992294941",
+  "Felipe": "5555991274993",
+  "Thalita": "5555991692449"
 };
 
 // DURAÇÃO DOS SERVIÇOS
