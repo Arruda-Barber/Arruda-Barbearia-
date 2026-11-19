@@ -92,5 +92,20 @@
   </footer>
 
   <script src="script.js"></script>
+  
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("./sw.js")
+      .then(function() {
+        console.log("Arruda Barber pronta!");
+      })
+      .catch(function(error) {
+        console.error("Erro ao ativar:", error);
+      });
+  });
+}
+</script>
+
 </body>
 </html>
