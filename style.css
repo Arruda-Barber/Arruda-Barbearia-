@@ -58,3 +58,19 @@ button {
   font-weight: bold;
   text-transform: uppercase;
 }
+.card, .servico, .service-card {
+  background: #151515;
+  border: 1px solid #b89635;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 12px 0;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.12);
+}
+
+.card h3, .servico h3, .service-card h3 {
+  color: #d4af37;
+}
+
+.card p, .servico p, .service-card p {
+  color: #ffffff;
+}
