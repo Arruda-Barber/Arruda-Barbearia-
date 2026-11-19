@@ -5,7 +5,7 @@
 
 // WHATSAPP DOS PROFISSIONAIS
 // Preencher os números de Arruda e Felipe depois.
-const profissionais = {
+const telefone = profissionais[profissional];
   "Arruda": "55992294941",
   "Felipe": "55991274993",
   "Thalita": "55991692449"
