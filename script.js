@@ -166,7 +166,6 @@ formulario.addEventListener("submit", function(event) {
     "https://wa.me/" + telefone +
     "?text=" + encodeURIComponent(mensagem);
 
-  window.location.href = link;
-});
+window.open(link, "_blank");
 
 console.log("Arruda Barber carregada com sucesso!");
