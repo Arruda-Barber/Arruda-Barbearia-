@@ -38,3 +38,14 @@ input, select {
 a {
   color: #d4af37;
 }
+p, label, span, li {
+  color: #ffffff;
+}
+
+h1, h2, h3, h4 {
+  color: #d4af37;
+}
+
+button {
+  color: #000000;
+}
