@@ -1,112 +1,129 @@
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#090909">
-  <meta name="description" content="Agende seu horário na Arruda Barber.">
- <title>ARRUDA BARBER | Barbearia Premium</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
-</head>
+const profissionais = {
+  "Arruda": "55592294941",
+  "Felipe": "555991274993",
+  "Thalita": "555991692449"
+};
 
-<body>
+const duracoes = {
+  "Cabelo": 35,
+  "Cabelo e barba": 55,
+  "Barba": 25,
+  "Sobrancelha com corte": 5,
+  "Apenas sobrancelha": 10,
+  "Pezinhos": 15,
+  "1 pente e pezinho": 20,
+  "2 pentes e pezinho": 25
+};
 
-  <header class="cabecalho">
-    <div class="logo">ARRUDA <span>BARBER</span></div>
-    <p>ESTILO • QUALIDADE • TRADIÇÃO</p>
-  </header>
+const formulario = document.getElementById("formAgendamento");
+const campoNome = document.getElementById("nome");
+const campoServico = document.getElementById("servico");
+const campoProfissional = document.getElementById("profissional");
+const campoData = document.getElementById("data");
+const campoHorario = document.getElementById("horario");
 
-  <main>
-    <section class="apresentacao">
-      <p class="subtitulo">BEM-VINDO À</p>
-      <h1>ARRUDA <span>BARBER</span></h1>
-      <p class="subtitulo">ESTILO • PRECISÃO • EXCLUSIVIDADE</p>
-      <p>Seu estilo merece o melhor cuidado.</p>
-      <a href="#agendamento" class="botao">AGENDAR HORÁRIO</a>
-    </section>
+function atualizarHorarios() {
+  const data = campoData.value;
+  const servico = campoServico.value;
+  const profissional = campoProfissional.value;
 
-    <section class="servicos">
-      <h2>NOSSOS SERVIÇOS</h2>
+  campoHorario.innerHTML =
+    '<option value="">Escolha um horário</option>';
 
-      <div class="servico-lista">
-        <div>Cabelo <span>35 min</span></div>
-        <div>Cabelo e barba <span>55 min</span></div>
-        <div>Barba <span>25 min</span></div>
-        <div>Sobrancelha com corte <span>5 min</span></div>
-        <div>Apenas sobrancelha <span>10 min</span></div>
-        <div>Pezinhos <span>15 min</span></div>
-        <div>1 pente e pezinho <span>20 min</span></div>
-        <div>2 pentes e pezinho <span>25 min</span></div>
-      </div>
-    </section>
+  if (!data || !servico || !profissional) return;
 
-    <section id="agendamento" class="agendamento">
-      <h2>AGENDE SEU HORÁRIO</h2>
-      <p>Escolha seu serviço e seu profissional.</p>
+  const dataEscolhida = new Date(data + "T12:00:00");
+  const dia = dataEscolhida.getDay();
 
-      <form id="formAgendamento">
+  if (dia === 0 || dia === 1) {
+    campoHorario.innerHTML =
+      '<option value="">Fechado neste dia</option>';
+    return;
+  }
 
-        <label for="nome">Seu nome</label>
-        <input id="nome" type="text" placeholder="Digite seu nome" required>
+  if (profissional === "Arruda" && dia === 3) {
+    campoHorario.innerHTML =
+      '<option value="">Arruda não atende às quartas-feiras</option>';
+    return;
+  }
 
-        <label for="servico">Serviço</label>
-        <select id="servico" required>
-          <option value="">Escolha um serviço</option>
-          <option value="Cabelo">Cabelo</option>
-          <option value="Cabelo e barba">Cabelo e barba</option>
-          <option value="Barba">Barba</option>
-          <option value="Sobrancelha com corte">Sobrancelha com corte</option>
-          <option value="Apenas sobrancelha">Apenas sobrancelha</option>
-          <option value="Pezinhos">Pezinhos</option>
-          <option value="1 pente e pezinho">1 pente e pezinho</option>
-          <option value="2 pentes e pezinho">2 pentes e pezinho</option>
-        </select>
+  const duracao = duracoes[servico];
 
-        <label for="profissional">Profissional</label>
-        <select id="profissional" required>
-          <option value="">Escolha o profissional</option>
-          <option value="Arruda">Arruda</option>
-          <option value="Felipe">Felipe</option>
-          <option value="Thalita">Thalita</option>
-        </select>
+  if (!duracao) return;
 
-        <label for="data">Data</label>
-        <input id="data" type="date" required>
+  for (let minutos = 9 * 60; minutos + duracao <= 19 * 60; minutos += duracao) {
+    const horas = String(Math.floor(minutos / 60)).padStart(2, "0");
+    const mins = String(minutos % 60).padStart(2, "0");
+    const horario = horas + ":" + mins;
 
-        <label for="horario">Horário</label>
-        <select id="horario" required>
-          <option value="">Escolha primeiro a data e o serviço</option>
-        </select>
+    const agora = new Date();
+    const hoje = new Date(
+      agora.getFullYear(),
+      agora.getMonth(),
+      agora.getDate()
+    );
 
-        <button type="submit">CONFIRMAR PELO WHATSAPP</button>
+    if (dataEscolhida.getTime() === hoje.getTime()) {
+      const horaAtual = agora.getHours() * 60 + agora.getMinutes();
+      if (minutos <= horaAtual) continue;
+    }
 
-      </form>
-    </section>
-  </main>
+    const opcao = document.createElement("option");
+    opcao.value = horario;
+    opcao.textContent = horario;
+    campoHorario.appendChild(opcao);
+  }
 
-  <footer>
-    <div class="logo">ARRUDA <span>BARBER</span></div>
-    <p>Terça-feira a sábado</p>
-    <p>© 2026 Arruda Barber</p>
-  </footer>
-
-  <script src="script.js"></script>
-  
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", function() {
-    navigator.serviceWorker.register("./sw.js")
-      .then(function() {
-        console.log("Arruda Barber pronta!");
-      })
-      .catch(function(error) {
-        console.error("Erro ao ativar:", error);
-      });
-  });
+  if (campoHorario.options.length === 1) {
+    campoHorario.innerHTML =
+      '<option value="">Não há horários disponíveis</option>';
+  }
 }
-</script>
 
-</body>
-</html>
+campoServico.addEventListener("change", atualizarHorarios);
+campoProfissional.addEventListener("change", atualizarHorarios);
+campoData.addEventListener("change", atualizarHorarios);
+
+const hoje = new Date();
+const ano = hoje.getFullYear();
+const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+const diaHoje = String(hoje.getDate()).padStart(2, "0");
+
+campoData.min = `${ano}-${mes}-${diaHoje}`;
+
+formulario.addEventListener("submit", function(event) {
+  event.preventDefault();
+
+  const nome = campoNome.value.trim();
+  const servico = campoServico.value;
+  const profissional = campoProfissional.value;
+  const data = campoData.value;
+  const horario = campoHorario.value;
+
+  if (!nome || !servico || !profissional || !data || !horario) {
+    alert("Preencha todos os campos do agendamento.");
+    return;
+  }
+
+  const telefone = profissionais[profissional];
+
+  if (!telefone) {
+    alert("Profissional não encontrado.");
+    return;
+  }
+
+  const dataFormatada = data.split("-").reverse().join("/");
+
+  const mensagem =
+    `Olá, ${profissional}! Gostaria de agendar um horário na Arruda Barber.\n\n` +
+    `Nome: ${nome}\n` +
+    `Serviço: ${servico}\n` +
+    `Profissional: ${profissional}\n` +
+    `Data: ${dataFormatada}\n` +
+    `Horário: ${horario}`;
+
+  const link = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
+
+  window.open(link, "_blank");
+});
