@@ -1,17 +1,16 @@
 
 // ======================================
-// ARRUDA BARBER - SISTEMA DE AGENDAMENTO
+// ARRUDA BARBER - AGENDAMENTO
 // ======================================
 
 // WHATSAPP DOS PROFISSIONAIS
-// Preencher os números de Arruda e Felipe depois.
-const telefone = profissionais[profissional];
+const profissionais = {
   "Arruda": "55992294941",
   "Felipe": "55991274993",
   "Thalita": "55991692449"
 };
 
-// DURAÇÃO DOS SERVIÇOS EM MINUTOS
+// DURAÇÃO DOS SERVIÇOS
 const servicos = {
   "Cabelo": 35,
   "Cabelo e barba": 55,
@@ -23,12 +22,12 @@ const servicos = {
   "2 pentes e pezinho": 25
 };
 
-// FUNCIONAMENTO
-const HORA_ABERTURA = 9;
-const HORA_FECHAMENTO = 19; // Horário provisório
+// HORÁRIO DE FUNCIONAMENTO
+const ABERTURA = 9;
+const FECHAMENTO = 19;
 const INTERVALO = 15;
 
-// ELEMENTOS DA PÁGINA
+// CAMPOS DO FORMULÁRIO
 const formulario = document.getElementById("formAgendamento");
 const campoNome = document.getElementById("nome");
 const campoServico = document.getElementById("servico");
@@ -50,18 +49,18 @@ campoData.min = dataLocal(new Date());
 
 // ATUALIZAR HORÁRIOS
 function atualizarHorarios() {
-  campoHorario.innerHTML = "";
+  campoHorario.innerHTML =
+    '<option value="">Escolha um horário</option>';
 
-  const dataSelecionada = campoData.value;
-  const servicoSelecionado = campoServico.value;
+  const dataEscolhida = campoData.value;
+  const servicoEscolhido = campoServico.value;
+  const profissionalEscolhido = campoProfissional.value;
 
-  if (!dataSelecionada || !servicoSelecionado) {
-    campoHorario.innerHTML =
-      '<option value="">Escolha a data e o serviço</option>';
+  if (!dataEscolhida || !servicoEscolhido || !profissionalEscolhido) {
     return;
   }
 
-  const data = new Date(dataSelecionada + "T12:00:00");
+  const data = new Date(dataEscolhida + "T12:00:00");
   const diaSemana = data.getDay();
 
   // DOMINGO E SEGUNDA: FECHADO
@@ -71,47 +70,51 @@ function atualizarHorarios() {
     return;
   }
 
-  const duracao = servicos[servicoSelecionado];
-  const hoje = new Date();
-  const ehHoje = dataSelecionada === dataLocal(hoje);
+  // ARRUDA NÃO ATENDE QUARTA-FEIRA
+  if (profissionalEscolhido === "Arruda" && diaSemana === 3) {
+    campoHorario.innerHTML =
+      '<option value="">Arruda não atende às quartas-feiras</option>';
+    return;
+  }
 
-  let quantidade = 0;
+  const duracao = servicos[servicoEscolhido];
+
+  if (!duracao) return;
+
+  const agora = new Date();
+  const ehHoje = dataEscolhida === dataLocal(agora);
 
   for (
-    let minutos = HORA_ABERTURA * 60;
-    minutos + duracao <= HORA_FECHAMENTO * 60;
+    let minutos = ABERTURA * 60;
+    minutos + duracao <= FECHAMENTO * 60;
     minutos += INTERVALO
   ) {
-    // Não oferecer horários que já passaram hoje.
     if (ehHoje) {
       const minutosAtuais =
-        hoje.getHours() * 60 + hoje.getMinutes();
+        agora.getHours() * 60 + agora.getMinutes();
 
-      if (minutos <= minutosAtuais) {
-        continue;
-      }
+      if (minutos <= minutosAtuais) continue;
     }
 
     const hora = String(Math.floor(minutos / 60)).padStart(2, "0");
     const minuto = String(minutos % 60).padStart(2, "0");
-
     const horario = `${hora}:${minuto}`;
 
     campoHorario.add(new Option(horario, horario));
-    quantidade++;
   }
 
-  if (quantidade === 0) {
+  if (campoHorario.options.length === 1) {
     campoHorario.innerHTML =
-      '<option value="">Não existem horários disponíveis</option>';
+      '<option value="">Não há horários disponíveis</option>';
   }
 }
 
-// ESCUTAR ALTERAÇÕES
+// ATUALIZAR QUANDO O CLIENTE ESCOLHER
 campoData.addEventListener("change", atualizarHorarios);
 campoServico.addEventListener("change", atualizarHorarios);
+campoProfissional.addEventListener("change", atualizarHorarios);
 
-// ENVIAR AGENDAMENTO PARA O WHATSAPP
+// CONFIRMAR AGENDAMENTO
 formulario.addEventListener("submit", function(event) {
   event.preventDefault();
 
@@ -122,17 +125,27 @@ formulario.addEventListener("submit", function(event) {
   const horario = campoHorario.value;
 
   if (!nome || !servico || !profissional || !data || !horario) {
-    alert("Preencha todos os campos!");
+    alert("Preencha todos os campos do agendamento.");
     return;
   }
 
-  const telefone = telefones[profissional];
+  const telefone = profissionais[profissional];
 
   if (!telefone) {
-    alert(
-      "O WhatsApp de " + profissional +
-      " ainda precisa ser configurado."
-    );
+    alert("Não encontramos o WhatsApp deste profissional.");
+    return;
+  }
+
+  const dataObj = new Date(data + "T12:00:00");
+  const diaSemana = dataObj.getDay();
+
+  if (diaSemana === 0 || diaSemana === 1) {
+    alert("A barbearia não atende aos domingos e segundas.");
+    return;
+  }
+
+  if (profissional === "Arruda" && diaSemana === 3) {
+    alert("Arruda não atende às quartas-feiras.");
     return;
   }
 
@@ -150,10 +163,8 @@ formulario.addEventListener("submit", function(event) {
     `Aguardo a confirmação do meu horário!`;
 
   const link =
-    "https://wa.me/" +
-    telefone +
-    "?text=" +
-    encodeURIComponent(mensagem);
+    "https://wa.me/" + telefone +
+    "?text=" + encodeURIComponent(mensagem);
 
   window.location.href = link;
 });
