@@ -162,10 +162,12 @@ formulario.addEventListener("submit", function(event) {
     `Horário: ${horario}\n\n` +
     `Aguardo a confirmação do meu horário!`;
 
+  
   const link =
     "https://wa.me/" + telefone +
     "?text=" + encodeURIComponent(mensagem);
 
-window.open(link, "_blank");
+  window.open(link, "_blank");
+});
 
 console.log("Arruda Barber carregada com sucesso!");
