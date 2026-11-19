@@ -49,3 +49,12 @@ h1, h2, h3, h4 {
 button {
   color: #000000;
 }
+.subtitulo {
+  color: #d4af37;
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-align: center;
+  margin-top: 15px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
