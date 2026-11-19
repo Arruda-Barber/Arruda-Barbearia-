@@ -5,10 +5,10 @@
 
 // WHATSAPP DOS PROFISSIONAIS
 // Preencher os números de Arruda e Felipe depois.
-const telefones = {
-  Arruda: "",
-  Felipe: "",
-  Thalita: "55991692449"
+const profissionais = {
+  "Arruda": "55992294941",
+  "Felipe": "55991274993",
+  "Thalita": "55991692449"
 };
 
 // DURAÇÃO DOS SERVIÇOS EM MINUTOS
