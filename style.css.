@@ -1,0 +1,191 @@
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #090909;
+  color: #f5f5f5;
+  font-family: Arial, sans-serif;
+}
+
+.cabecalho {
+  text-align: center;
+  padding: 28px 15px;
+  background: #111;
+  border-bottom: 1px solid #b89148;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: #fff;
+}
+
+.logo span,
+h1 span {
+  color: #d4ad62;
+}
+
+.cabecalho p {
+  margin-top: 9px;
+  color: #aaa;
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+
+main {
+  width: 100%;
+  max-width: 650px;
+  margin: auto;
+}
+
+.apresentacao {
+  text-align: center;
+  padding: 75px 20px;
+  background:
+    radial-gradient(ellipse at center, #292015 0%, #090909 70%);
+}
+
+.subtitulo {
+  color: #d4ad62;
+  letter-spacing: 5px;
+  font-size: 12px;
+}
+
+.apresentacao h1 {
+  margin: 18px 0;
+  font-size: clamp(32px, 8vw, 48px);
+  letter-spacing: 3px;
+}
+
+.apresentacao > p:last-of-type {
+  color: #bbb;
+  margin-bottom: 30px;
+}
+
+.botao,
+button {
+  display: inline-block;
+  background: linear-gradient(135deg, #e0bf78, #ad8136);
+  color: #090909;
+  text-decoration: none;
+  padding: 16px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.servicos,
+.agendamento {
+  padding: 40px 22px;
+}
+
+h2 {
+  color: #d4ad62;
+  text-align: center;
+  font-size: 23px;
+  margin-bottom: 25px;
+  letter-spacing: 2px;
+}
+
+.servico-lista {
+  border-top: 1px solid #393026;
+}
+
+.servico-lista div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 17px 5px;
+  border-bottom: 1px solid #393026;
+  color: #eee;
+}
+
+.servico-lista span {
+  color: #d4ad62;
+  white-space: nowrap;
+}
+
+.agendamento {
+  background: #111;
+  border-top: 1px solid #554324;
+  border-bottom: 1px solid #554324;
+}
+
+.agendamento > p {
+  color: #aaa;
+  text-align: center;
+  margin-top: -12px;
+  margin-bottom: 25px;
+}
+
+label {
+  display: block;
+  color: #d4ad62;
+  margin: 20px 0 8px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+input,
+select {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #6b5431;
+  border-radius: 5px;
+  background: #1c1c1c;
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: #d4ad62;
+}
+
+button {
+  width: 100%;
+  margin-top: 30px;
+  min-height: 54px;
+}
+
+footer {
+  padding: 35px 15px;
+  text-align: center;
+  background: #080808;
+  color: #888;
+}
+
+footer .logo {
+  margin-bottom: 15px;
+  font-size: 22px;
+}
+
+footer p {
+  margin: 8px;
+  font-size: 13px;
+}
+
+@media (max-width: 380px) {
+  .servicos,
+  .agendamento {
+    padding: 32px 16px;
+  }
+
+  .servico-lista div {
+    font-size: 14px;
+  }
+}
