@@ -6,14 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#080808">
   <title>ARRUDA BARBER | Barbearia Premium</title>
-  <link rel="stylesheet" href="style.css?v=2">
-    </head>
+  <link rel="stylesheet" href="style.css?v=3">
+</head>
 <body>
 
   <header>
-    <div class="logo">
-      ARRUDA <span>BARBER</span>
-    </div>
+    <div class="logo">ARRUDA <span>BARBER</span></div>
   </header>
 
   <main>
@@ -27,38 +25,48 @@
       <h2>NOSSOS SERVIÇOS</h2>
 
       <div class="service-card">
-        <h3>Cabelo</h3>
+        <h3>Corte degradê</h3>
+        <p>R$ 35,00</p>
+      </div>
+
+      <div class="service-card">
+        <h3>Corte degradê (navalhado)</h3>
+        <p>R$ 40,00</p>
+      </div>
+
+      <div class="service-card">
+        <h3>Corte social</h3>
         <p>R$ 35,00</p>
       </div>
 
       <div class="service-card">
         <h3>Cabelo e barba</h3>
-        <p>Consulte o valor na barbearia</p>
+        <p>R$ 55,00</p>
       </div>
 
       <div class="service-card">
-        <h3>Barba</h3>
-        <p>Consulte o valor na barbearia</p>
+        <h3>Cabelo, barba e sobrancelha</h3>
+        <p>R$ 60,00</p>
       </div>
 
       <div class="service-card">
-        <h3>Sobrancelha com corte</h3>
+        <h3>Corte 2 pentes</h3>
+        <p>R$ 25,00</p>
       </div>
 
       <div class="service-card">
-        <h3>Apenas sobrancelha</h3>
+        <h3>Corte 1 pente</h3>
+        <p>R$ 20,00</p>
       </div>
 
       <div class="service-card">
         <h3>Pezinhos</h3>
+        <p>R$ 15,00</p>
       </div>
 
       <div class="service-card">
-        <h3>1 pente e pezinho</h3>
-      </div>
-
-      <div class="service-card">
-        <h3>2 pentes e pezinho</h3>
+        <h3>Sobrancelha</h3>
+        <p>R$ 5,00</p>
       </div>
     </section>
 
@@ -74,14 +82,15 @@
         <label for="servico">Serviço</label>
         <select id="servico" required>
           <option value="">Escolha um serviço</option>
-          <option value="Cabelo">Cabelo</option>
+          <option value="Corte degradê">Corte degradê</option>
+          <option value="Corte degradê (navalhado)">Corte degradê (navalhado)</option>
+          <option value="Corte social">Corte social</option>
           <option value="Cabelo e barba">Cabelo e barba</option>
-          <option value="Barba">Barba</option>
-          <option value="Sobrancelha com corte">Sobrancelha com corte</option>
-          <option value="Apenas sobrancelha">Apenas sobrancelha</option>
+          <option value="Cabelo, barba e sobrancelha">Cabelo, barba e sobrancelha</option>
+          <option value="Corte 2 pentes">Corte 2 pentes</option>
+          <option value="Corte 1 pente">Corte 1 pente</option>
           <option value="Pezinhos">Pezinhos</option>
-          <option value="1 pente e pezinho">1 pente e pezinho</option>
-          <option value="2 pentes e pezinho">2 pentes e pezinho</option>
+          <option value="Sobrancelha">Sobrancelha</option>
         </select>
 
         <label for="profissional">Profissional</label>
@@ -101,7 +110,6 @@
         </select>
 
         <button type="submit">CONFIRMAR PELO WHATSAPP</button>
-
       </form>
     </section>
   </main>
@@ -112,7 +120,7 @@
     <p>© 2026 Arruda Barber</p>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=3"></script>
 
   <script>
     if ("serviceWorker" in navigator) {
