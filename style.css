@@ -74,3 +74,13 @@ button {
 .card p, .servico p, .service-card p {
   color: #ffffff;
 }
+
+body {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.88)),
+    url("C8550C37-53E1-4B14-92D8-B2CDCC5E32BE.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
