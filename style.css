@@ -374,3 +374,50 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     letter-spacing: 0.5px;
   }
 }
+
+
+/* Confirmação do agendamento e aviso de cancelamento */
+.confirmacao-reserva[hidden] {
+  display: none;
+}
+
+.confirmacao-reserva {
+  max-width: 720px;
+  margin: 24px auto 0;
+  padding: 22px 18px;
+  background: rgba(12, 12, 12, 0.97);
+  border: 2px solid #d4af37;
+  border-radius: 12px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
+}
+
+.confirmacao-reserva h3 {
+  margin-bottom: 14px;
+  color: #d4af37;
+  font-size: 22px;
+  text-align: center;
+}
+
+.confirmacao-reserva p {
+  color: #ffffff;
+  line-height: 1.6;
+  margin: 10px 0;
+}
+
+.confirmacao-reserva .aviso-cancelamento {
+  margin-top: 18px;
+  padding: 14px;
+  color: #fff4ce;
+  background: #30260e;
+  border-left: 4px solid #d4af37;
+  border-radius: 6px;
+}
+
+.confirmacao-reserva .aviso-cancelamento strong {
+  color: #f4d675;
+}
+
+.confirmacao-reserva button {
+  width: 100%;
+  margin-top: 14px;
+}
