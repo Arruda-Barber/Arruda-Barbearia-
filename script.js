@@ -2,6 +2,11 @@
 const SUPABASE_URL = "https://kduaktloheptwyzynppf.supabase.co";
 const SUPABASE_KEY = "sb_publishable_avmpjV37mxZihhOW_Ov8VQ_YbVWyae4";
 
+if (!window.supabase || typeof window.supabase.createClient !== "function") {
+  alert("Não foi possível carregar o sistema de agendamento. Verifique sua internet e atualize a página.");
+  throw new Error("Biblioteca Supabase não carregada.");
+}
+
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const profissionais = {
@@ -25,45 +30,188 @@ const servicos = {
 
 const formulario = document.getElementById("formAgendamento");
 const campoNome = document.getElementById("nome");
-const campoTelefone = document.getElementById("telefone");
 const campoServico = document.getElementById("servico");
 const campoProfissional = document.getElementById("profissional");
 const campoData = document.getElementById("data");
 const campoHorario = document.getElementById("horario");
 const campoPrecoServico = document.getElementById("precoServico");
+const botao = formulario ? formulario.querySelector('button[type="submit"]') : null;
+const botaoTentarHorarios = document.getElementById("botaoTentarHorarios");
+const campoCodigoCancelamento = document.getElementById("codigoCancelamento");
+const botaoCancelar = document.getElementById("botaoCancelar");
+
+if (!formulario || !campoNome || !campoServico || !campoProfissional || !campoData || !campoHorario || !botao) {
+  console.error("Campos obrigatórios do agendamento não encontrados.");
+  throw new Error("Formulário de agendamento incompleto.");
+}
+
+function dataHoraSaoPaulo() {
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(new Date());
+
+  const valores = {};
+  partes.forEach(function(parte) {
+    if (parte.type !== "literal") valores[parte.type] = parte.value;
+  });
+
+  return {
+    data: valores.year + "-" + valores.month + "-" + valores.day,
+    minutos: Number(valores.hour) * 60 + Number(valores.minute)
+  };
+}
+
+function minutosHora(hora) {
+  const partes = String(hora).split(":");
+  return Number(partes[0]) * 60 + Number(partes[1]);
+}
+
+function formatarHora(minutos) {
+  const hora = String(Math.floor(minutos / 60)).padStart(2, "0");
+  const minuto = String(minutos % 60).padStart(2, "0");
+  return hora + ":" + minuto + ":00";
+}
+
+function diaPermitido(data, profissional) {
+  if (!data) return false;
+  const dia = new Date(data + "T12:00:00").getDay();
+  if (dia === 0 || dia === 1) return false;
+  if (profissional === "Arruda" && dia === 3) return false;
+  return true;
+}
 
 function atualizarPrecoServico() {
   if (!campoPrecoServico) return;
-  const servicoSelecionado = servicos[campoServico.value];
-  campoPrecoServico.textContent = servicoSelecionado
-    ? "Valor do serviço: " + servicoSelecionado.preco.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-      })
+  const selecionado = servicos[campoServico.value];
+  campoPrecoServico.textContent = selecionado
+    ? "Valor do serviço: " + selecionado.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
     : "Selecione um serviço para ver o valor.";
 }
 
 atualizarPrecoServico();
-
-
-if (!formulario || !campoNome || !campoServico ||
-    !campoProfissional || !campoData || !campoHorario) {
-  console.error("Não foi possível localizar todos os campos do formulário.");
-  alert("Erro ao carregar o formulário. Atualize a página.");
-  throw new Error("Campos do formulário não encontrados.");
-}
-
-const botao = formulario.querySelector('button[type="submit"]');
-const campoCodigoCancelamento = document.getElementById("codigoCancelamento");
-const botaoCancelar = document.getElementById("botaoCancelar");
+campoData.min = dataHoraSaoPaulo().data;
 
 if (campoCodigoCancelamento) {
   const parametros = new URLSearchParams(window.location.search);
   const codigoLink = parametros.get("cancel");
   if (codigoLink) {
     campoCodigoCancelamento.value = codigoLink;
-    document.getElementById("cancelar")?.scrollIntoView({ behavior: "smooth" });
+    const secaoCancelar = document.getElementById("cancelar");
+    if (secaoCancelar) secaoCancelar.scrollIntoView({ behavior: "smooth" });
   }
+}
+
+let versaoConsultaHorarios = 0;
+
+async function atualizarHorarios() {
+  const versaoAtual = ++versaoConsultaHorarios;
+  const data = campoData.value;
+  const servico = campoServico.value;
+  const profissional = campoProfissional.value;
+
+  if (botaoTentarHorarios) botaoTentarHorarios.hidden = true;
+
+  if (!data || !servico || !profissional) {
+    campoHorario.innerHTML = '<option value="">Escolha data, serviço e profissional</option>';
+    return;
+  }
+
+  if (!diaPermitido(data, profissional)) {
+    campoHorario.innerHTML = '<option value="">Profissional não atende neste dia</option>';
+    return;
+  }
+
+  campoHorario.innerHTML = '<option value="">Carregando horários...</option>';
+
+  try {
+    const resposta = await db.rpc("get_busy_intervals_v2", {
+      p_date: data,
+      p_barber: profissional
+    });
+
+    if (versaoAtual !== versaoConsultaHorarios) return;
+    if (resposta.error) throw resposta.error;
+
+    const ocupados = Array.isArray(resposta.data) ? resposta.data : [];
+    const duracao = servicos[servico].minutos;
+    const agora = dataHoraSaoPaulo();
+    const horarios = [];
+
+    function adicionarPeriodo(inicio, fim) {
+      for (let minuto = inicio; minuto <= fim; minuto += 15) {
+        if (data < agora.data || (data === agora.data && minuto <= agora.minutos)) continue;
+
+        const fimSlot = minuto + duracao;
+        const conflito = ocupados.some(function(item) {
+          const inicioOcupado = minutosHora(item.start_time);
+          const fimOcupado = minutosHora(item.end_time);
+          return minuto < fimOcupado && fimSlot > inicioOcupado;
+        });
+
+        if (!conflito) horarios.push(String(Math.floor(minuto / 60)).padStart(2, "0") + ":" + String(minuto % 60).padStart(2, "0"));
+      }
+    }
+
+    const dia = new Date(data + "T12:00:00").getDay();
+    adicionarPeriodo(9 * 60, 11 * 60 + 30);
+
+    if (dia === 6) {
+      adicionarPeriodo(14 * 60, 19 * 60);
+    } else {
+      adicionarPeriodo(14 * 60, 19 * 60 + 30);
+    }
+
+    if (versaoAtual !== versaoConsultaHorarios) return;
+
+    campoHorario.innerHTML = '<option value="">Escolha um horário</option>';
+    horarios.forEach(function(horario) {
+      campoHorario.add(new Option(horario, horario));
+    });
+
+    if (!horarios.length) {
+      campoHorario.innerHTML = '<option value="">Não há horários disponíveis</option>';
+    }
+  } catch (erro) {
+    console.error("Falha ao consultar horários:", erro);
+    if (versaoAtual !== versaoConsultaHorarios) return;
+    campoHorario.innerHTML = '<option value="">Não foi possível carregar os horários</option>';
+    if (botaoTentarHorarios) botaoTentarHorarios.hidden = false;
+  }
+}
+
+campoData.addEventListener("change", function() {
+  if (campoData.value && !diaPermitido(campoData.value, campoProfissional.value)) {
+    alert(campoProfissional.value === "Arruda"
+      ? "Arruda não atende às quartas-feiras. Escolha outro dia."
+      : "A barbearia não atende aos domingos e às segundas-feiras.");
+    campoData.value = "";
+    campoHorario.innerHTML = '<option value="">Escolha outra data</option>';
+    return;
+  }
+  atualizarHorarios();
+});
+
+campoServico.addEventListener("change", function() {
+  atualizarPrecoServico();
+  atualizarHorarios();
+});
+
+campoProfissional.addEventListener("change", function() {
+  if (campoData.value && !diaPermitido(campoData.value, campoProfissional.value)) {
+    alert("Arruda não atende às quartas-feiras. Escolha outro dia.");
+    campoData.value = "";
+  }
+  atualizarHorarios();
+});
+
+if (botaoTentarHorarios) {
+  botaoTentarHorarios.addEventListener("click", atualizarHorarios);
 }
 
 if (botaoCancelar && campoCodigoCancelamento) {
@@ -75,328 +223,185 @@ if (botaoCancelar && campoCodigoCancelamento) {
       return;
     }
 
-    const confirmar = confirm("Tem certeza de que deseja cancelar este agendamento?");
-    if (!confirmar) return;
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token)) {
+      alert("O código informado não parece válido. Abra o link original recebido pelo WhatsApp ou confira o código.");
+      return;
+    }
+
+    if (!confirm("Tem certeza de que deseja cancelar este agendamento?")) return;
 
     botaoCancelar.disabled = true;
     botaoCancelar.textContent = "CANCELANDO...";
 
-    const { data: cancelado, error } = await db.rpc("cancel_booking", {
-      p_token: token
-    });
+    try {
+      const resposta = await db.rpc("cancel_booking", { p_token: token });
+      if (resposta.error) throw resposta.error;
 
-    botaoCancelar.disabled = false;
-    botaoCancelar.textContent = "CANCELAR AGENDAMENTO";
+      const cancelado = resposta.data;
+      if (!cancelado || !cancelado.cancelled) {
+        alert("Código inválido, horário já cancelado ou agendamento já realizado.");
+        return;
+      }
 
-    if (error) {
-      console.error("Erro ao cancelar:", error);
-      alert("Não foi possível cancelar agora. Tente novamente.");
-      return;
+      campoCodigoCancelamento.value = "";
+
+      const partes = String(cancelado.booking_date).split("-");
+      const dataCancelada = new Date(String(cancelado.booking_date) + "T12:00:00");
+      const diaCancelado = dataCancelada.toLocaleDateString("pt-BR", { weekday: "long" });
+      const dataFormatada = diaCancelado + ", " + partes[2] + "/" + partes[1] + "/" + partes[0];
+      const telefone = profissionais[cancelado.barber];
+
+      if (!telefone) {
+        alert("Agendamento cancelado. Não foi possível identificar o WhatsApp do profissional.");
+        return;
+      }
+
+      const mensagem = "Horário cancelado, tive imprevisto e não vou conseguir comparecer.\n\n" +
+        "Data: " + dataFormatada + "\n" +
+        "Horário: " + String(cancelado.start_time).slice(0, 5) + ".";
+
+      const linkWhatsApp = "https://wa.me/" + telefone + "?text=" + encodeURIComponent(mensagem);
+      alert("Agendamento cancelado! Vamos abrir o WhatsApp do profissional para avisar.");
+      window.location.assign(linkWhatsApp);
+    } catch (erro) {
+      console.error("Erro ao cancelar agendamento:", erro);
+      alert("Não foi possível concluir o cancelamento por enquanto. Verifique sua conexão e tente novamente. Se continuar, fale diretamente com a barbearia.");
+    } finally {
+      botaoCancelar.disabled = false;
+      botaoCancelar.textContent = "CANCELAR AGENDAMENTO";
     }
-
-    if (!cancelado) {
-      alert("Código inválido, horário já cancelado ou agendamento já realizado.");
-      return;
-    }
-
-    if (!cancelado || !cancelado.cancelled) {
-      alert("Código inválido, horário já cancelado ou agendamento já realizado.");
-      return;
-    }
-
-    campoCodigoCancelamento.value = "";
-
-    const dataCancelada = new Date(cancelado.booking_date + "T12:00:00");
-    const diaCancelado = dataCancelada.toLocaleDateString("pt-BR", {
-      weekday: "long"
-    });
-    const partesCanceladas = cancelado.booking_date.split("-");
-    const dataCanceladaFormatada =
-      `${diaCancelado}, ${partesCanceladas[2]}/${partesCanceladas[1]}/${partesCanceladas[0]}`;
-    const mensagemProfissional =
-      `Horário cancelado, tive imprevisto e não vou conseguir comparecer.\\n\\n` +
-      `Data: ${dataCanceladaFormatada}\\n` +
-      `Horário: ${String(cancelado.start_time).slice(0, 5)}.`;
-
-    const linkWhatsAppProfissional =
-      "https://wa.me/" +
-      profissionais[cancelado.barber] +
-      "?text=" +
-      encodeURIComponent(mensagemProfissional);
-
-    alert("Agendamento cancelado! Vamos abrir o WhatsApp do profissional para avisar.");
-    window.location.href = linkWhatsAppProfissional;
   });
 }
 
-function dataLocal(data) {
-  const ano = data.getFullYear();
-  const mes = String(data.getMonth() + 1).padStart(2, "0");
-  const dia = String(data.getDate()).padStart(2, "0");
-  return `${ano}-${mes}-${dia}`;
-}
-
-function minutosHora(hora) {
-  const partes = hora.split(":");
-  return Number(partes[0]) * 60 + Number(partes[1]);
-}
-
-function formatarHora(minutos) {
-  const hora = String(Math.floor(minutos / 60)).padStart(2, "0");
-  const minuto = String(minutos % 60).padStart(2, "0");
-  return `${hora}:${minuto}:00`;
-}
-
-campoData.min = dataLocal(new Date());
-
-function diaPermitido(data, profissional) {
-  const dia = new Date(data + "T12:00:00").getDay();
-
-  if (dia === 0 || dia === 1) return false;
-  if (profissional === "Arruda" && dia === 3) return false;
-
-  return true;
-}
-
-async function atualizarHorarios() {
-  campoHorario.innerHTML =
-    '<option value="">Carregando horários...</option>';
-
-  const data = campoData.value;
-  const servico = campoServico.value;
-  const profissional = campoProfissional.value;
-
-  if (!data || !servico || !profissional) {
-    campoHorario.innerHTML =
-      '<option value="">Escolha data, serviço e profissional</option>';
-    return;
-  }
-
-  if (!diaPermitido(data, profissional)) {
-    campoHorario.innerHTML =
-      '<option value="">Profissional não atende neste dia</option>';
-    return;
-  }
-
-  const { data: ocupados, error } = await db.rpc(
-    "get_busy_intervals_v2",
-    {
-      p_date: data,
-      p_barber: profissional
-    }
-  );
-
-  if (error) {
-    console.error("Erro ao consultar agenda:", error);
-    alert("Erro ao consultar agenda: " + error.message);
-    campoHorario.innerHTML =
-      '<option value="">Erro ao consultar agenda</option>';
-    return;
-  }
-
-  const duracao = servicos[servico].minutos;
-  const agora = new Date();
-  const hoje = dataLocal(agora);
-  const minutoAtual = agora.getHours() * 60 + agora.getMinutes();
-  const horarios = [];
-
-  function adicionarPeriodo(inicio, fim) {
-    for (
-      let minuto = inicio;
-      minuto <= fim;
-      minuto += 15
-    ) {
-      if (
-        data < hoje ||
-        (data === hoje && minuto <= minutoAtual)
-      ) {
-        continue;
-      }
-
-      const fimSlot = minuto + duracao;
-
-      const conflito = (ocupados || []).some(item => {
-        const inicioOcupado = minutosHora(item.start_time);
-        const fimOcupado = minutosHora(item.end_time);
-
-        return minuto < fimOcupado && fimSlot > inicioOcupado;
-      });
-
-      if (!conflito) {
-        horarios.push(formatarHora(minuto).slice(0, 5));
-      }
-    }
-  }
-
-  const dia = new Date(data + "T12:00:00").getDay();
-
-  adicionarPeriodo(9 * 60, 11 * 60 + 30);
-
-  if (dia === 6) {
-    adicionarPeriodo(14 * 60, 19 * 60);
-  } else {
-    adicionarPeriodo(14 * 60, 19 * 60 + 30);
-  }
-
-  campoHorario.innerHTML =
-    '<option value="">Escolha um horário</option>';
-
-  horarios.forEach(horario => {
-    campoHorario.add(new Option(horario, horario));
-  });
-
-  if (!horarios.length) {
-    campoHorario.innerHTML =
-      '<option value="">Não há horários disponíveis</option>';
-  }
-}
-
-campoData.addEventListener("change", function() {
-  if (
-    campoData.value &&
-    !diaPermitido(campoData.value, campoProfissional.value)
-  ) {
-    alert("Esse profissional não atende nesta data. Escolha outro dia.");
-    campoData.value = "";
-    campoHorario.innerHTML =
-      '<option value="">Escolha outra data</option>';
-    return;
-  }
-
-  atualizarHorarios();
-});
-
-campoServico.addEventListener("change", function() {
-  atualizarPrecoServico();
-  atualizarHorarios();
-});
-
-campoProfissional.addEventListener("change", function() {
-  if (
-    campoData.value &&
-    !diaPermitido(campoData.value, campoProfissional.value)
-  ) {
-    alert("Arruda não atende às quartas-feiras. Escolha outro dia.");
-    campoData.value = "";
-  }
-
-  atualizarHorarios();
-});
-
-formulario.addEventListener("submit", async function(event) {
-  event.preventDefault();
+formulario.addEventListener("submit", async function(evento) {
+  evento.preventDefault();
+  if (botao.disabled) return;
 
   const nome = campoNome.value.trim();
-  const telefoneCliente = campoTelefone
-    ? campoTelefone.value.trim()
-    : "";
   const servico = campoServico.value;
   const profissional = campoProfissional.value;
   const data = campoData.value;
   const horario = campoHorario.value;
 
   if (!nome || !servico || !profissional || !data || !horario) {
-    alert("Preencha todos os campos.");
+    alert("Preencha todos os campos do agendamento.");
     return;
   }
 
-  if (!servicos[servico]) {
-    alert("Serviço inválido.");
+  if (nome.length > 80) {
+    alert("O nome deve ter no máximo 80 caracteres.");
+    campoNome.focus();
+    return;
+  }
+
+  if (!servicos[servico] || !Object.prototype.hasOwnProperty.call(profissionais, profissional)) {
+    alert("Confira o serviço e o profissional selecionados.");
+    return;
+  }
+
+  const agora = dataHoraSaoPaulo();
+  if (data < agora.data) {
+    alert("Escolha uma data de hoje em diante.");
     return;
   }
 
   if (!diaPermitido(data, profissional)) {
-    alert("Este profissional não atende neste dia.");
+    alert("Esse profissional não atende nesta data. Escolha outro dia.");
+    return;
+  }
+
+  if (!/^\d{2}:\d{2}$/.test(horario)) {
+    alert("Escolha um horário válido na lista.");
     return;
   }
 
   const inicioMinutos = minutosHora(horario);
-  const duracao = servicos[servico].minutos;
-  const fimMinutos = inicioMinutos + duracao;
+  if (!Number.isFinite(inicioMinutos) || inicioMinutos % 15 !== 0) {
+    alert("Escolha um horário válido na lista.");
+    return;
+  }
+
+  if (data === agora.data && inicioMinutos <= agora.minutos) {
+    alert("Esse horário já passou. Escolha outro horário.");
+    await atualizarHorarios();
+    return;
+  }
+
   const dia = new Date(data + "T12:00:00").getDay();
   const limite = dia === 6 ? 19 * 60 : 19 * 60 + 30;
-
   const dentroDoHorario =
     (inicioMinutos >= 9 * 60 && inicioMinutos <= 11 * 60 + 30) ||
     (inicioMinutos >= 14 * 60 && inicioMinutos <= limite);
 
   if (!dentroDoHorario) {
-    alert("Horário fora do expediente.");
-    return;
-  }
-
-  if (botao) {
-    botao.disabled = true;
-    botao.textContent = "RESERVANDO...";
-  }
-
-  const { data: reserva, error } = await db.rpc("create_booking", {
-    p_client_name: nome,
-    p_service: servico,
-    p_barber: profissional,
-    p_date: data,
-    p_start_time: formatarHora(inicioMinutos)
-  });
-
-  if (error) {
-    console.error("Erro ao reservar:", error);
-
-    if (
-      error.code === "23P01" ||
-      error.message.includes("reservado")
-    ) {
-      alert("Este horário acabou de ser reservado. Escolha outro.");
-    } else {
-      alert("Não foi possível reservar: " + error.message);
-    }
-
-    if (botao) {
-      botao.disabled = false;
-      botao.textContent = "RESERVAR HORÁRIO";
-    }
-
+    alert("Horário fora do expediente. Escolha um horário disponível na lista.");
     await atualizarHorarios();
     return;
   }
 
-  const dataLocalAgendamento = new Date(data + "T12:00:00");
-  const diaSemana = dataLocalAgendamento.toLocaleDateString("pt-BR", {
-    weekday: "long"
-  });
-  const partes = data.split("-");
-  const dataFormatada =
-    `${diaSemana}, ${partes[2]}/${partes[1]}/${partes[0]}`;
+  botao.disabled = true;
+  botao.textContent = "RESERVANDO...";
 
-  const tokenCancelamento = reserva && reserva.cancellation_token;
+  let reserva;
+  try {
+    const resposta = await db.rpc("create_booking", {
+      p_client_name: nome,
+      p_service: servico,
+      p_barber: profissional,
+      p_date: data,
+      p_start_time: formatarHora(inicioMinutos)
+    });
 
-  if (!tokenCancelamento) {
-    alert("Seu horário foi reservado, mas não foi possível gerar o link de cancelamento. Entre em contato com a barbearia pelo WhatsApp.");
+    if (resposta.error) throw resposta.error;
+    reserva = resposta.data;
+  } catch (erro) {
+    console.error("Erro ao reservar:", erro);
+
+    const codigo = erro && erro.code;
+    const mensagemErro = String((erro && erro.message) || "").toLowerCase();
+
+    if (codigo === "23P01" || mensagemErro.includes("reservado") || mensagemErro.includes("overlap")) {
+      alert("Esse horário acabou de ser ocupado. Atualizamos a lista; escolha outro horário.");
+      await atualizarHorarios();
+    } else if (erro && (erro.name === "TypeError" || mensagemErro.includes("fetch"))) {
+      alert("A conexão caiu ou a resposta do servidor não chegou. Para evitar uma reserva duplicada, atualize os horários antes de tentar novamente. Se o horário sumir da lista, a reserva pode ter sido confirmada.");
+      await atualizarHorarios();
+    } else {
+      alert("Não foi possível confirmar o agendamento. Confira os dados e tente novamente. Se o erro continuar, fale com a barbearia.");
+      await atualizarHorarios();
+    }
+
+    botao.disabled = false;
+    botao.textContent = "RESERVAR HORÁRIO";
+    return;
   }
 
+  const partes = data.split("-");
+  const dataAgendamento = new Date(data + "T12:00:00");
+  const diaSemana = dataAgendamento.toLocaleDateString("pt-BR", { weekday: "long" });
+  const dataFormatada = diaSemana + ", " + partes[2] + "/" + partes[1] + "/" + partes[0];
+  const tokenCancelamento = reserva && reserva.cancellation_token;
   const linkCancelamento = tokenCancelamento
-    ? `${window.location.origin}${window.location.pathname}?cancel=${encodeURIComponent(tokenCancelamento)}#cancelar`
+    ? window.location.origin + window.location.pathname + "?cancel=" + encodeURIComponent(tokenCancelamento) + "#cancelar"
     : "";
 
-  const mensagem =
-    `Olá, ${profissional}! Acabei de reservar um horário pelo site da Arruda Barber.\n\n` +
-    `Nome: ${nome}\n` +
-    `Telefone: ${telefoneCliente}\n` +
-    `Serviço: ${servico}\n` +
-    `Valor: ${servicos[servico].preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}\n` +
-    `Duração: ${duracao} minutos\n` +
-    `Data: ${dataFormatada}\n` +
-    `Horário: ${horario}\n\n` +
-    `Meu horário já está confirmado pelo site. Obrigado!\n\n` +
-    (linkCancelamento ? `Link para cancelar, se precisar: ${linkCancelamento}` : "Para cancelar, entre em contato com a barbearia.");
+  const mensagem = "Olá, " + profissional + "! Acabei de reservar um horário pelo site da Arruda Barber.\n\n" +
+    "Nome: " + nome + "\n" +
+    "Serviço: " + servico + "\n" +
+    "Valor: " + servicos[servico].preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "\n" +
+    "Duração: " + servicos[servico].minutos + " minutos\n" +
+    "Data: " + dataFormatada + "\n" +
+    "Horário: " + horario + "\n\n" +
+    "Meu horário já está confirmado pelo site. Obrigado!\n\n" +
+    (linkCancelamento
+      ? "Link para cancelar, se precisar: " + linkCancelamento
+      : "Para cancelar, entre em contato com a barbearia.");
 
-  const link =
-    "https://wa.me/" +
-    profissionais[profissional] +
-    "?text=" +
-    encodeURIComponent(mensagem);
+  const telefoneProfissional = profissionais[profissional];
+  const linkWhatsApp = "https://wa.me/" + telefoneProfissional + "?text=" + encodeURIComponent(mensagem);
 
-  alert("Horário reservado e confirmado com sucesso!");
-  window.location.href = link;
+  alert("Horário reservado e confirmado com sucesso! Vamos abrir o WhatsApp para enviar os detalhes.");
+  window.location.assign(linkWhatsApp);
 });
 
-console.log("Arruda Barber conectada ao Supabase!");
+console.log("Arruda Barber: sistema de agendamento carregado.");
