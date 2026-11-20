@@ -1,3 +1,4 @@
+
 const SUPABASE_URL = "https://asidqwdyjxswnjolfavj.supabase.co";
 const SUPABASE_KEY = "sb_publishable_i3rLs1hxhmrcYpruXxGdDw_APase-8x";
 
@@ -40,6 +41,15 @@ function dataLocal(data) {
 
 campoData.min = dataLocal(new Date());
 
+function diaPermitido(data, profissional) {
+  const dia = new Date(data + "T12:00:00").getDay();
+
+  if (dia === 0 || dia === 1) return false;
+  if (profissional === "Arruda" && dia === 3) return false;
+
+  return true;
+}
+
 async function atualizarHorarios() {
   campoHorario.innerHTML = '<option value="">Carregando horários...</option>';
 
@@ -52,15 +62,8 @@ async function atualizarHorarios() {
     return;
   }
 
-  const dia = new Date(data + "T12:00:00").getDay();
-
-  if (dia === 0 || dia === 1) {
-    campoHorario.innerHTML = '<option value="">Fechado aos domingos e segundas</option>';
-    return;
-  }
-
-  if (profissional === "Arruda" && dia === 3) {
-    campoHorario.innerHTML = '<option value="">Arruda não atende às quartas-feiras</option>';
+  if (!diaPermitido(data, profissional)) {
+    campoHorario.innerHTML = '<option value="">Profissional não atende neste dia</option>';
     return;
   }
 
@@ -71,7 +74,7 @@ async function atualizarHorarios() {
 
   if (error) {
     console.error(error);
-    campoHorario.innerHTML = '<option value="">Erro ao consultar agenda. Tente novamente.</option>';
+    campoHorario.innerHTML = '<option value="">Erro ao consultar agenda</option>';
     return;
   }
 
@@ -91,18 +94,23 @@ async function atualizarHorarios() {
       if (inicioSlot <= agora) continue;
 
       const conflito = (ocupados || []).some(item => {
-        const inicioOcupado = new Date(item.inicio);
-        const fimOcupado = new Date(item.fim);
-
-        return inicioSlot < fimOcupado && fimSlot > inicioOcupado;
+        return inicioSlot < new Date(item.fim) &&
+               fimSlot > new Date(item.inicio);
       });
 
       if (!conflito) horarios.push(horario);
     }
   }
 
-  adicionarPeriodo(8 * 60 + 30, 11 * 60 + 30);
-  adicionarPeriodo(14 * 60, 19 * 60 + 30);
+  const dia = new Date(data + "T12:00:00").getDay();
+
+  adicionarPeriodo(9 * 60, 12 * 60);
+
+  if (dia === 6) {
+    adicionarPeriodo(14 * 60, 19 * 60);
+  } else {
+    adicionarPeriodo(14 * 60, 19 * 60 + 30);
+  }
 
   campoHorario.innerHTML = '<option value="">Escolha um horário</option>';
 
@@ -115,30 +123,60 @@ async function atualizarHorarios() {
   }
 }
 
-campoData.addEventListener("change", atualizarHorarios);
+campoData.addEventListener("change", function() {
+  if (campoData.value && !diaPermitido(campoData.value, campoProfissional.value)) {
+    alert("Esse profissional não atende nesta data. Escolha outro dia.");
+    campoData.value = "";
+    campoHorario.innerHTML = '<option value="">Escolha outra data</option>';
+    return;
+  }
+
+  atualizarHorarios();
+});
+
 campoServico.addEventListener("change", atualizarHorarios);
-campoProfissional.addEventListener("change", atualizarHorarios);
+
+campoProfissional.addEventListener("change", function() {
+  if (campoData.value && !diaPermitido(campoData.value, campoProfissional.value)) {
+    alert("Arruda não atende às quartas-feiras. Escolha outro dia.");
+    campoData.value = "";
+  }
+
+  atualizarHorarios();
+});
 
 formulario.addEventListener("submit", async function(event) {
   event.preventDefault();
 
   const nome = campoNome.value.trim();
-  const telefoneCliente = campoTelefone.value.trim();
+  const telefoneCliente = campoTelefone ? campoTelefone.value.trim() : "";
   const servico = campoServico.value;
   const profissional = campoProfissional.value;
   const data = campoData.value;
   const horario = campoHorario.value;
 
-  if (!nome || !telefoneCliente || !servico || !profissional || !data || !horario) {
+  if (!nome || !servico || !profissional || !data || !horario) {
     alert("Preencha todos os campos.");
+    return;
+  }
+
+  if (!diaPermitido(data, profissional)) {
+    alert("Este profissional não atende neste dia.");
     return;
   }
 
   const inicio = new Date(`${data}T${horario}:00-03:00`);
   const dia = new Date(data + "T12:00:00").getDay();
+  const minutos = inicio.getHours() * 60 + inicio.getMinutes();
+  const duracao = servicos[servico].minutos;
+  const limite = dia === 6 ? 19 * 60 : 19 * 60 + 30;
 
-  if (dia === 0 || dia === 1 || (profissional === "Arruda" && dia === 3)) {
-    alert("Este profissional não atende neste dia.");
+  const dentroDoHorario =
+    (minutos >= 9 * 60 && minutos + duracao <= 12 * 60) ||
+    (minutos >= 14 * 60 && minutos + duracao <= limite);
+
+  if (!dentroDoHorario) {
+    alert("Horário fora do expediente.");
     return;
   }
 
@@ -151,14 +189,14 @@ formulario.addEventListener("submit", async function(event) {
     p_barbeiro: profissional,
     p_servico: servico,
     p_inicio: inicio.toISOString(),
-    p_duracao: servicos[servico].minutos
+    p_duracao: duracao
   });
 
   if (error) {
     console.error(error);
 
     if (error.message.includes("HORARIO_INDISPONIVEL")) {
-      alert("Este horário acabou de ser reservado. Escolha outro horário.");
+      alert("Este horário acabou de ser reservado. Escolha outro.");
     } else {
       alert("Não foi possível reservar. Verifique os dados e tente novamente.");
     }
@@ -177,7 +215,7 @@ formulario.addEventListener("submit", async function(event) {
     `Nome: ${nome}\n` +
     `Telefone: ${telefoneCliente}\n` +
     `Serviço: ${servico}\n` +
-    `Duração: ${servicos[servico].minutos} minutos\n` +
+    `Duração: ${duracao} minutos\n` +
     `Data: ${dataFormatada}\n` +
     `Horário: ${horario}\n\n` +
     `Aguardo a confirmação!`;
