@@ -84,3 +84,8 @@ body {
   background-attachment: fixed;
   background-repeat: no-repeat;
 }
+.preco-selecionado {
+  color: #d4af37;
+  font-weight: bold;
+  margin: 4px 0 14px;
+}
