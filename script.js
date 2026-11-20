@@ -39,6 +39,17 @@ function dataLocal(data) {
   return `${ano}-${mes}-${dia}`;
 }
 
+function minutosHora(hora) {
+  const partes = hora.split(":");
+  return Number(partes[0]) * 60 + Number(partes[1]);
+}
+
+function formatarHora(minutos) {
+  const hora = String(Math.floor(minutos / 60)).padStart(2, "0");
+  const minuto = String(minutos % 60).padStart(2, "0");
+  return `${hora}:${minuto}:00`;
+}
+
 campoData.min = dataLocal(new Date());
 
 function diaPermitido(data, profissional) {
@@ -51,54 +62,71 @@ function diaPermitido(data, profissional) {
 }
 
 async function atualizarHorarios() {
-  campoHorario.innerHTML = '<option value="">Carregando horários...</option>';
+  campoHorario.innerHTML =
+    '<option value="">Carregando horários...</option>';
 
   const data = campoData.value;
   const servico = campoServico.value;
   const profissional = campoProfissional.value;
 
   if (!data || !servico || !profissional) {
-    campoHorario.innerHTML = '<option value="">Escolha data, serviço e profissional</option>';
+    campoHorario.innerHTML =
+      '<option value="">Escolha data, serviço e profissional</option>';
     return;
   }
 
   if (!diaPermitido(data, profissional)) {
-    campoHorario.innerHTML = '<option value="">Profissional não atende neste dia</option>';
+    campoHorario.innerHTML =
+      '<option value="">Profissional não atende neste dia</option>';
     return;
   }
 
-  const { data: ocupados, error } = await db.rpc("consultar_horarios", {
-    p_data: data,
-    p_barbeiro: profissional
-  });
+  const { data: ocupados, error } = await db
+    .from("barber_bookings")
+    .select("start_time, end_time")
+    .eq("booking_date", data)
+    .eq("barber", profissional)
+    .eq("status", "confirmed");
 
   if (error) {
     console.error(error);
-    campoHorario.innerHTML = '<option value="">Erro ao consultar agenda</option>';
+    campoHorario.innerHTML =
+      '<option value="">Erro ao consultar agenda</option>';
     return;
   }
 
   const duracao = servicos[servico].minutos;
   const agora = new Date();
+  const hoje = dataLocal(agora);
+  const minutoAtual = agora.getHours() * 60 + agora.getMinutes();
   const horarios = [];
 
   function adicionarPeriodo(inicio, fim) {
-    for (let minuto = inicio; minuto + duracao <= fim; minuto += 15) {
-      const hora = String(Math.floor(minuto / 60)).padStart(2, "0");
-      const min = String(minuto % 60).padStart(2, "0");
-      const horario = `${hora}:${min}`;
+    for (
+      let minuto = inicio;
+      minuto + duracao <= fim;
+      minuto += 15
+    ) {
+      if (
+        data < hoje ||
+        (data === hoje && minuto <= minutoAtual)
+      ) {
+        continue;
+      }
 
-      const inicioSlot = new Date(`${data}T${horario}:00-03:00`);
-      const fimSlot = new Date(inicioSlot.getTime() + duracao * 60000);
-
-      if (inicioSlot <= agora) continue;
+      const fimSlot = minuto + duracao;
 
       const conflito = (ocupados || []).some(item => {
-        return inicioSlot < new Date(item.fim) &&
-               fimSlot > new Date(item.inicio);
+        const inicioOcupado = minutosHora(item.start_time);
+        const fimOcupado = minutosHora(item.end_time);
+
+        return minuto < fimOcupado &&
+               fimSlot > inicioOcupado;
       });
 
-      if (!conflito) horarios.push(horario);
+      if (!conflito) {
+        horarios.push(formatarHora(minuto).slice(0, 5));
+      }
     }
   }
 
@@ -112,22 +140,28 @@ async function atualizarHorarios() {
     adicionarPeriodo(14 * 60, 19 * 60 + 30);
   }
 
-  campoHorario.innerHTML = '<option value="">Escolha um horário</option>';
+  campoHorario.innerHTML =
+    '<option value="">Escolha um horário</option>';
 
   horarios.forEach(horario => {
     campoHorario.add(new Option(horario, horario));
   });
 
   if (!horarios.length) {
-    campoHorario.innerHTML = '<option value="">Não há horários disponíveis</option>';
+    campoHorario.innerHTML =
+      '<option value="">Não há horários disponíveis</option>';
   }
 }
 
 campoData.addEventListener("change", function() {
-  if (campoData.value && !diaPermitido(campoData.value, campoProfissional.value)) {
+  if (
+    campoData.value &&
+    !diaPermitido(campoData.value, campoProfissional.value)
+  ) {
     alert("Esse profissional não atende nesta data. Escolha outro dia.");
     campoData.value = "";
-    campoHorario.innerHTML = '<option value="">Escolha outra data</option>';
+    campoHorario.innerHTML =
+      '<option value="">Escolha outra data</option>';
     return;
   }
 
@@ -137,7 +171,10 @@ campoData.addEventListener("change", function() {
 campoServico.addEventListener("change", atualizarHorarios);
 
 campoProfissional.addEventListener("change", function() {
-  if (campoData.value && !diaPermitido(campoData.value, campoProfissional.value)) {
+  if (
+    campoData.value &&
+    !diaPermitido(campoData.value, campoProfissional.value)
+  ) {
     alert("Arruda não atende às quartas-feiras. Escolha outro dia.");
     campoData.value = "";
   }
@@ -149,7 +186,9 @@ formulario.addEventListener("submit", async function(event) {
   event.preventDefault();
 
   const nome = campoNome.value.trim();
-  const telefoneCliente = campoTelefone ? campoTelefone.value.trim() : "";
+  const telefoneCliente = campoTelefone
+    ? campoTelefone.value.trim()
+    : "";
   const servico = campoServico.value;
   const profissional = campoProfissional.value;
   const data = campoData.value;
@@ -165,15 +204,15 @@ formulario.addEventListener("submit", async function(event) {
     return;
   }
 
-  const inicio = new Date(`${data}T${horario}:00-03:00`);
-  const dia = new Date(data + "T12:00:00").getDay();
-  const minutos = inicio.getHours() * 60 + inicio.getMinutes();
+  const inicioMinutos = minutosHora(horario);
   const duracao = servicos[servico].minutos;
+  const fimMinutos = inicioMinutos + duracao;
+  const dia = new Date(data + "T12:00:00").getDay();
   const limite = dia === 6 ? 19 * 60 : 19 * 60 + 30;
 
   const dentroDoHorario =
-    (minutos >= 9 * 60 && minutos + duracao <= 12 * 60) ||
-    (minutos >= 14 * 60 && minutos + duracao <= limite);
+    (inicioMinutos >= 9 * 60 && fimMinutos <= 12 * 60) ||
+    (inicioMinutos >= 14 * 60 && fimMinutos <= limite);
 
   if (!dentroDoHorario) {
     alert("Horário fora do expediente.");
@@ -183,32 +222,40 @@ formulario.addEventListener("submit", async function(event) {
   botao.disabled = true;
   botao.textContent = "RESERVANDO...";
 
-  const { error } = await db.rpc("criar_agendamento", {
-    p_cliente_nome: nome,
-    p_cliente_telefone: telefoneCliente,
-    p_barbeiro: profissional,
-    p_servico: servico,
-    p_inicio: inicio.toISOString(),
-    p_duracao: duracao
-  });
+  const { error } = await db
+    .from("barber_bookings")
+    .insert({
+      client_name: nome,
+      service: servico,
+      barber: profissional,
+      booking_date: data,
+      start_time: formatarHora(inicioMinutos),
+      end_time: formatarHora(fimMinutos),
+      status: "confirmed"
+    });
 
   if (error) {
     console.error(error);
 
-    if (error.message.includes("HORARIO_INDISPONIVEL")) {
+    if (
+      error.code === "23P01" ||
+      error.message.includes("barber_bookings_no_overlap")
+    ) {
       alert("Este horário acabou de ser reservado. Escolha outro.");
     } else {
-      alert("Não foi possível reservar. Verifique os dados e tente novamente.");
+      alert("Não foi possível reservar. Tente novamente.");
     }
 
     botao.disabled = false;
     botao.textContent = "CONFIRMAR PELO WHATSAPP";
+
     await atualizarHorarios();
     return;
   }
 
   const partes = data.split("-");
-  const dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+  const dataFormatada =
+    `${partes[2]}/${partes[1]}/${partes[0]}`;
 
   const mensagem =
     `Olá, ${profissional}! Gostaria de confirmar meu agendamento na Arruda Barber.\n\n` +
@@ -220,8 +267,11 @@ formulario.addEventListener("submit", async function(event) {
     `Horário: ${horario}\n\n` +
     `Aguardo a confirmação!`;
 
-  const link = "https://wa.me/" + profissionais[profissional] +
-    "?text=" + encodeURIComponent(mensagem);
+  const link =
+    "https://wa.me/" +
+    profissionais[profissional] +
+    "?text=" +
+    encodeURIComponent(mensagem);
 
   alert("Horário reservado com sucesso!");
   window.location.href = link;
