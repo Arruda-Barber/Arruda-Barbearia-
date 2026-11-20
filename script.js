@@ -267,9 +267,12 @@ if (botaoCancelar && campoCodigoCancelamento) {
         return;
       }
 
-      const mensagem = "Horário cancelado, tive imprevisto e não vou conseguir comparecer.\n\n" +
-        "Data: " + dataFormatada + "\n" +
-        "Horário: " + String(cancelado.start_time).slice(0, 5) + ".";
+      const mensagem = "Olá, " + cancelado.barber + "! Estou avisando que meu agendamento foi cancelado pelo site da Arruda Barber.\\n\\n" +
+        "Nome: " + (cancelado.client_name || "") + "\\n" +
+        "Serviço: " + (cancelado.service || "") + "\\n" +
+        "Data: " + dataFormatada + "\\n" +
+        "Horário: " + String(cancelado.start_time).slice(0, 5) + "\\n\\n" +
+        "Cancelamento confirmado pelo site. Obrigado!";
 
       const linkWhatsApp = "https://wa.me/" + telefone + "?text=" + encodeURIComponent(mensagem);
       alert("Agendamento cancelado! Vamos abrir o WhatsApp do profissional para avisar.");
@@ -427,6 +430,9 @@ formulario.addEventListener("submit", async function(evento) {
 
   botao.disabled = true;
   botao.textContent = "HORÁRIO RESERVADO";
+
+  // Abre o WhatsApp automaticamente após a confirmação efetiva no banco.
+  window.location.assign(linkWhatsApp);
 });
 
 console.log("Arruda Barber: sistema de agendamento carregado.");
