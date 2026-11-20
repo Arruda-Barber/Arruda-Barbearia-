@@ -405,8 +405,7 @@ formulario.addEventListener("submit", async function(evento) {
     "Meu horário já está confirmado pelo site. Obrigado!\n\n" +
     (linkCancelamento
       ? "Quero cancelar meu horário: " + linkCancelamento
-      : "Para cancelar, entre em contato com a barbearia.") + "\n\n" +
-    "Atenção: cancelamentos devem ser realizados dentro de 1 hora após a reserva. Caso o cancelamento não seja feito dentro desse período, será cobrada uma taxa de R$ 15,00.";
+      : "Para cancelar, entre em contato com a barbearia.");
 
   const telefoneProfissional = profissionais[profissional];
   const linkWhatsApp = "https://wa.me/" + telefoneProfissional + "?text=" + encodeURIComponent(mensagem);
