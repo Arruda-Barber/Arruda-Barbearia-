@@ -25,7 +25,7 @@ const servicos = {
   "Corte 2 pentes": { preco: 25, minutos: 20 },
   "Corte 1 pente": { preco: 20, minutos: 15 },
   "Pezinhos": { preco: 15, minutos: 10 },
-  "Sobrancelha": { preco: 5, minutos: 10 },
+  "Sobrancelha": { preco: 10, minutos: 10 },
   "Barba": { preco: 25, minutos: 20 }
 };
 
@@ -36,6 +36,9 @@ const campoProfissional = document.getElementById("profissional");
 const campoData = document.getElementById("data");
 const campoHorario = document.getElementById("horario");
 const campoPrecoServico = document.getElementById("precoServico");
+const opcaoSobrancelha = document.getElementById("opcaoSobrancelha");
+const campoAdicionarSobrancelha = document.getElementById("adicionarSobrancelha");
+const servicosComOpcaoSobrancelha = ["Corte degradê", "Corte infantil", "Corte degradê (navalhado)", "Corte social", "Cabelo e barba", "Corte 2 pentes", "Corte 1 pente"];
 const botao = formulario ? formulario.querySelector('button[type="submit"]') : null;
 const botaoTentarHorarios = document.getElementById("botaoTentarHorarios");
 const campoCodigoCancelamento = document.getElementById("codigoCancelamento");
@@ -91,12 +94,36 @@ function diaPermitido(data, profissional) {
   return true;
 }
 
+function temSobrancelhaAdicional() {
+  return Boolean(campoAdicionarSobrancelha && campoAdicionarSobrancelha.checked &&
+    servicosComOpcaoSobrancelha.includes(campoServico.value));
+}
+
+function precoTotalServico(servico) {
+  return servicos[servico].preco + (temSobrancelhaAdicional() ? 5 : 0);
+}
+
+function duracaoTotalServico(servico) {
+  return servicos[servico].minutos + (temSobrancelhaAdicional() ? 10 : 0);
+}
+
+function nomeServicoAgendamento(servico) {
+  return servico + (temSobrancelhaAdicional() ? " + Sobrancelha" : "");
+}
+
 function atualizarPrecoServico() {
   if (!campoPrecoServico) return;
   const selecionado = servicos[campoServico.value];
-  campoPrecoServico.textContent = selecionado
-    ? "Valor do serviço: " + selecionado.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-    : "Selecione um serviço para ver o valor.";
+  const permiteAdicional = servicosComOpcaoSobrancelha.includes(campoServico.value);
+  if (opcaoSobrancelha) opcaoSobrancelha.hidden = !permiteAdicional;
+  if (!permiteAdicional && campoAdicionarSobrancelha) campoAdicionarSobrancelha.checked = false;
+  if (!selecionado) {
+    campoPrecoServico.textContent = "Selecione um serviço para ver o valor.";
+    return;
+  }
+  const valor = precoTotalServico(campoServico.value);
+  campoPrecoServico.textContent = "Valor do serviço: " + valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) +
+    (temSobrancelhaAdicional() ? " (inclui sobrancelha)" : "");
 }
 
 atualizarPrecoServico();
@@ -144,7 +171,7 @@ async function atualizarHorarios() {
     if (resposta.error) throw resposta.error;
 
     const ocupados = Array.isArray(resposta.data) ? resposta.data : [];
-    const duracao = servicos[servico].minutos;
+    const duracao = duracaoTotalServico(servico);
     const agora = dataHoraSaoPaulo();
     const horarios = [];
 
@@ -206,6 +233,13 @@ campoServico.addEventListener("change", function() {
   atualizarPrecoServico();
   atualizarHorarios();
 });
+
+if (campoAdicionarSobrancelha) {
+  campoAdicionarSobrancelha.addEventListener("change", function() {
+    atualizarPrecoServico();
+    atualizarHorarios();
+  });
+}
 
 campoProfissional.addEventListener("change", function() {
   if (campoData.value && !diaPermitido(campoData.value, campoProfissional.value)) {
@@ -360,7 +394,7 @@ formulario.addEventListener("submit", async function(evento) {
   try {
     const resposta = await db.rpc("create_booking", {
       p_client_name: nome,
-      p_service: servico,
+      p_service: nomeServicoAgendamento(servico),
       p_barber: profissional,
       p_date: data,
       p_start_time: formatarHora(inicioMinutos)
@@ -401,9 +435,9 @@ formulario.addEventListener("submit", async function(evento) {
 
   const mensagem = "Olá, " + profissional + "! Acabei de reservar um horário pelo site da Arruda Barber.\n\n" +
     "Nome: " + nome + "\n" +
-    "Serviço: " + servico + "\n" +
-    "Valor: " + servicos[servico].preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "\n" +
-    "Duração: " + servicos[servico].minutos + " minutos\n" +
+    "Serviço: " + nomeServicoAgendamento(servico) + "\n" +
+    "Valor: " + precoTotalServico(servico).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "\n" +
+    "Duração: " + duracaoTotalServico(servico) + " minutos\n" +
     "Data: " + dataFormatada + "\n" +
     "Horário: " + horario + "\n\n" +
     "Meu horário já está confirmado pelo site. Obrigado!\n\n" +
@@ -418,9 +452,9 @@ formulario.addEventListener("submit", async function(evento) {
 
   if (detalhesConfirmacao) {
     detalhesConfirmacao.textContent =
-      "Nome: " + nome + " | Profissional: " + profissional + " | Serviço: " + servico +
+      "Nome: " + nome + " | Profissional: " + profissional + " | Serviço: " + nomeServicoAgendamento(servico) +
       " | Data: " + dataFormatada + " | Horário: " + horario +
-      " | Valor: " + servicos[servico].preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      " | Valor: " + precoTotalServico(servico).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
   if (confirmacaoReserva) {
