@@ -81,75 +81,73 @@ async function atualizarHorarios() {
     return;
   }
 
-  const { data: ocupados, error } = await db
-    .from("barber_bookings")
-    .select("start_time, end_time")
-    .eq("booking_date", data)
-    .eq("barber", profissional)
-    .eq("status", "confirmed");
-
-  if (error) {alert("ERRO: " + error.message);
-    console.error(error);
-    campoHorario.innerHTML =
-      '<option value="">Erro ao consultar agenda</option>';
-    return;
-  }
-
-  const duracao = servicos[servico].minutos;
-  const agora = new Date();
-  const hoje = dataLocal(agora);
-  const minutoAtual = agora.getHours() * 60 + agora.getMinutes();
-  const horarios = [];
-
-  function adicionarPeriodo(inicio, fim) {
-    for (
-      let minuto = inicio;
-      minuto + duracao <= fim;
-      minuto += 15
-    ) {
-      if (
-        data < hoje ||
-        (data === hoje && minuto <= minutoAtual)
-      ) {
-        continue;
+  try {
+    const { data: ocupados, error } = await db.rpc(
+      "get_busy_intervals",
+      {
+        p_date: data,
+        p_barber: profissional
       }
+    );
 
-      const fimSlot = minuto + duracao;
+    if (error) throw error;
 
-      const conflito = (ocupados || []).some(item => {
-        const inicioOcupado = minutosHora(item.start_time);
-        const fimOcupado = minutosHora(item.end_time);
+    const duracao = servicos[servico].minutos;
+    const agora = new Date();
+    const hoje = dataLocal(agora);
+    const minutoAtual = agora.getHours() * 60 + agora.getMinutes();
+    const horarios = [];
 
-        return minuto < fimOcupado &&
-               fimSlot > inicioOcupado;
-      });
+    function adicionarPeriodo(inicio, fim) {
+      for (let minuto = inicio; minuto + duracao <= fim; minuto += 15) {
+        if (
+          data < hoje ||
+          (data === hoje && minuto <= minutoAtual)
+        ) continue;
 
-      if (!conflito) {
-        horarios.push(formatarHora(minuto).slice(0, 5));
+        const fimSlot = minuto + duracao;
+
+        const conflito = (ocupados || []).some(item => {
+          const inicioOcupado = minutosHora(item.start_time);
+          const fimOcupado = minutosHora(item.end_time);
+
+          return minuto < fimOcupado && fimSlot > inicioOcupado;
+        });
+
+        if (!conflito) {
+          horarios.push(formatarHora(minuto).slice(0, 5));
+        }
       }
     }
-  }
 
-  const dia = new Date(data + "T12:00:00").getDay();
+    const dia = new Date(data + "T12:00:00").getDay();
 
-  adicionarPeriodo(9 * 60, 12 * 60);
+    adicionarPeriodo(9 * 60, 12 * 60);
 
-  if (dia === 6) {
-    adicionarPeriodo(14 * 60, 19 * 60);
-  } else {
-    adicionarPeriodo(14 * 60, 19 * 60 + 30);
-  }
+    if (dia === 6) {
+      adicionarPeriodo(14 * 60, 19 * 60);
+    } else {
+      adicionarPeriodo(14 * 60, 19 * 60 + 30);
+    }
 
-  campoHorario.innerHTML =
-    '<option value="">Escolha um horário</option>';
-
-  horarios.forEach(horario => {
-    campoHorario.add(new Option(horario, horario));
-  });
-
-  if (!horarios.length) {
     campoHorario.innerHTML =
-      '<option value="">Não há horários disponíveis</option>';
+      '<option value="">Escolha um horário</option>';
+
+    horarios.forEach(horario => {
+      campoHorario.add(new Option(horario, horario));
+    });
+
+    if (!horarios.length) {
+      campoHorario.innerHTML =
+        '<option value="">Não há horários disponíveis</option>';
+    }
+
+  } catch (error) {
+    console.error("Erro ao consultar agenda:", error);
+    alert("Erro ao consultar agenda: " + error.message);
+
+    campoHorario.innerHTML =
+      '<option value="">Erro ao consultar agenda</option>';
   }
 }
 
@@ -222,59 +220,52 @@ formulario.addEventListener("submit", async function(event) {
   botao.disabled = true;
   botao.textContent = "RESERVANDO...";
 
-  const { error } = await db
-    .from("barber_bookings")
-    .insert({
-      client_name: nome,
-      service: servico,
-      barber: profissional,
-      booking_date: data,
-      start_time: formatarHora(inicioMinutos),
-      end_time: formatarHora(fimMinutos),
-      status: "confirmed"
-    });
+  try {
+    const { data: reserva, error } = await db.rpc(
+      "create_booking",
+      {
+        p_client_name: nome,
+        p_service: servico,
+        p_barber: profissional,
+        p_date: data,
+        p_start_time: formatarHora(inicioMinutos)
+      }
+    );
 
-  if (error) {
-    console.error(error);
+    if (error) throw error;
 
-    if (
-      error.code === "23P01" ||
-      error.message.includes("barber_bookings_no_overlap")
-    ) {
-      alert("Este horário acabou de ser reservado. Escolha outro.");
-    } else {
-      alert("Não foi possível reservar. Tente novamente.");
-    }
+    const partes = data.split("-");
+    const dataFormatada =
+      `${partes[2]}/${partes[1]}/${partes[0]}`;
 
+    const mensagem =
+      `Olá, ${profissional}! Gostaria de confirmar meu agendamento na Arruda Barber.\n\n` +
+      `Nome: ${nome}\n` +
+      `Telefone: ${telefoneCliente}\n` +
+      `Serviço: ${servico}\n` +
+      `Duração: ${duracao} minutos\n` +
+      `Data: ${dataFormatada}\n` +
+      `Horário: ${horario}\n\n` +
+      `Aguardo a confirmação!`;
+
+    const link =
+      "https://wa.me/" +
+      profissionais[profissional] +
+      "?text=" +
+      encodeURIComponent(mensagem);
+
+    alert("Horário reservado com sucesso!");
+    window.location.href = link;
+
+  } catch (error) {
+    console.error("Erro ao reservar:", error);
+    alert("ERRO AO RESERVAR: " + error.message);
+    await atualizarHorarios();
+
+  } finally {
     botao.disabled = false;
     botao.textContent = "CONFIRMAR PELO WHATSAPP";
-
-    await atualizarHorarios();
-    return;
   }
-
-  const partes = data.split("-");
-  const dataFormatada =
-    `${partes[2]}/${partes[1]}/${partes[0]}`;
-
-  const mensagem =
-    `Olá, ${profissional}! Gostaria de confirmar meu agendamento na Arruda Barber.\n\n` +
-    `Nome: ${nome}\n` +
-    `Telefone: ${telefoneCliente}\n` +
-    `Serviço: ${servico}\n` +
-    `Duração: ${duracao} minutos\n` +
-    `Data: ${dataFormatada}\n` +
-    `Horário: ${horario}\n\n` +
-    `Aguardo a confirmação!`;
-
-  const link =
-    "https://wa.me/" +
-    profissionais[profissional] +
-    "?text=" +
-    encodeURIComponent(mensagem);
-
-  alert("Horário reservado com sucesso!");
-  window.location.href = link;
 });
 
 console.log("Arruda Barber conectada ao Supabase!");
