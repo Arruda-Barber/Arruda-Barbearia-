@@ -88,7 +88,7 @@ async function atualizarHorarios() {
     .eq("barber", profissional)
     .eq("status", "confirmed");
 
-  if (error) {
+  if (error) {alert("ERRO: " + error.message);
     console.error(error);
     campoHorario.innerHTML =
       '<option value="">Erro ao consultar agenda</option>';
