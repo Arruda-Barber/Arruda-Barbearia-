@@ -112,6 +112,14 @@
         <button type="submit">RESERVAR HORÁRIO</button>
       </form>
     </section>
+
+    <section id="cancelar" class="agendamento">
+      <h2>PRECISA CANCELAR?</h2>
+      <p>Abra o link de cancelamento recebido no WhatsApp ou cole aqui seu código.</p>
+      <label for="codigoCancelamento">Código de cancelamento</label>
+      <input id="codigoCancelamento" type="text" placeholder="Cole seu código ou abra o link recebido">
+      <button id="botaoCancelar" type="button">CANCELAR AGENDAMENTO</button>
+    </section>
   </main>
 
   <footer>
@@ -121,7 +129,7 @@
   </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js?v=8"></script>
+<script src="script.js?v=9"></script>
 
   <script>
     if ("serviceWorker" in navigator) {
