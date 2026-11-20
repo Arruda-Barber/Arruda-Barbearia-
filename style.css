@@ -509,3 +509,28 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .card-profissional { min-height: 105px; padding: 10px 4px; }
   .profissional-info strong { font-size: 11px; }
 }
+
+
+/* Chamada de atenção para a escolha do profissional */
+.titulo-escolha-profissional {
+  margin: 24px 0 14px;
+  padding: 17px 16px;
+  text-align: center;
+  background: linear-gradient(110deg, #d4af37 0%, #f5dc86 48%, #c49a2c 100%);
+  border: 2px solid #ffe9a0;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(212, 175, 55, .32);
+}
+.titulo-escolha-profissional label {
+  color: #080808;
+  font-size: clamp(16px, 4.2vw, 19px);
+  font-weight: 900;
+  letter-spacing: 1.3px;
+  text-shadow: none;
+}
+.titulo-escolha-profissional span {
+  margin-top: 6px;
+  color: #211a08;
+  font-size: 13px;
+  font-weight: 700;
+}
