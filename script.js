@@ -39,6 +39,10 @@ const botao = formulario ? formulario.querySelector('button[type="submit"]') : n
 const botaoTentarHorarios = document.getElementById("botaoTentarHorarios");
 const campoCodigoCancelamento = document.getElementById("codigoCancelamento");
 const botaoCancelar = document.getElementById("botaoCancelar");
+const confirmacaoReserva = document.getElementById("confirmacaoReserva");
+const detalhesConfirmacao = document.getElementById("detalhesConfirmacao");
+const botaoEnviarWhatsAppReserva = document.getElementById("enviarWhatsAppReserva");
+let linkWhatsAppReserva = "";
 
 if (!formulario || !campoNome || !campoServico || !campoProfissional || !campoData || !campoHorario || !botao) {
   console.error("Campos obrigatórios do agendamento não encontrados.");
@@ -212,6 +216,12 @@ campoProfissional.addEventListener("change", function() {
 
 if (botaoTentarHorarios) {
   botaoTentarHorarios.addEventListener("click", atualizarHorarios);
+}
+
+if (botaoEnviarWhatsAppReserva) {
+  botaoEnviarWhatsAppReserva.addEventListener("click", function() {
+    if (linkWhatsAppReserva) window.location.assign(linkWhatsAppReserva);
+  });
 }
 
 if (botaoCancelar && campoCodigoCancelamento) {
@@ -401,8 +411,22 @@ formulario.addEventListener("submit", async function(evento) {
   const telefoneProfissional = profissionais[profissional];
   const linkWhatsApp = "https://wa.me/" + telefoneProfissional + "?text=" + encodeURIComponent(mensagem);
 
-  alert("Horário reservado e confirmado com sucesso! Vamos abrir o WhatsApp para enviar os detalhes.");
-  window.location.assign(linkWhatsApp);
+  linkWhatsAppReserva = linkWhatsApp;
+
+  if (detalhesConfirmacao) {
+    detalhesConfirmacao.textContent =
+      "Nome: " + nome + " | Profissional: " + profissional + " | Serviço: " + servico +
+      " | Data: " + dataFormatada + " | Horário: " + horario +
+      " | Valor: " + servicos[servico].preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  if (confirmacaoReserva) {
+    confirmacaoReserva.hidden = false;
+    confirmacaoReserva.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  botao.disabled = true;
+  botao.textContent = "HORÁRIO RESERVADO";
 });
 
 console.log("Arruda Barber: sistema de agendamento carregado.");
