@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#080808">
   <title>ARRUDA BARBER | Barbearia Premium</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -144,6 +144,46 @@
         navigator.serviceWorker.register("./sw.js");
       });
     }
+  </script>
+
+
+  <div id="modalRedes" class="modal-redes" role="dialog" aria-modal="true" aria-labelledby="tituloRedes" aria-describedby="textoRedes" hidden>
+    <div class="modal-redes-conteudo">
+      <p class="modal-redes-etiqueta">ARRUDA BARBER</p>
+      <h2 id="tituloRedes">Acompanhe nossas redes!</h2>
+      <p id="textoRedes">Siga nossos profissionais no Instagram e fique por dentro dos cortes e novidades.</p>
+      <div class="links-redes">
+        <a href="https://www.instagram.com/arruda__barber_/" target="_blank" rel="noopener noreferrer"><span>Instagram</span><strong>Arruda</strong></a>
+        <a href="https://www.instagram.com/__felipearruda/" target="_blank" rel="noopener noreferrer"><span>Instagram</span><strong>Felipe</strong></a>
+        <a href="https://www.instagram.com/t_arrudaa/" target="_blank" rel="noopener noreferrer"><span>Instagram</span><strong>Thalita</strong></a>
+      </div>
+      <button type="button" id="fecharModalRedes" class="botao-agora-nao">AGORA NÃO</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const modal = document.getElementById("modalRedes");
+      const fechar = document.getElementById("fecharModalRedes");
+      if (!modal || !fechar) return;
+
+      if (!sessionStorage.getItem("arrudaRedesDispensadas")) {
+        modal.hidden = false;
+      }
+
+      function fecharModal() {
+        modal.hidden = true;
+        sessionStorage.setItem("arrudaRedesDispensadas", "1");
+      }
+
+      fechar.addEventListener("click", fecharModal);
+      modal.addEventListener("click", function (evento) {
+        if (evento.target === modal) fecharModal();
+      });
+      document.addEventListener("keydown", function (evento) {
+        if (evento.key === "Escape" && !modal.hidden) fecharModal();
+      });
+    })();
   </script>
 
 </body>
