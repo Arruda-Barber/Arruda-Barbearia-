@@ -14,7 +14,7 @@
   <meta name="twitter:title" content="Arruda Barber - Agendamentos">
   <meta name="twitter:description" content="Agende aqui seu horário na Arruda Barber!">
   <title>Arruda Barber - Agendamentos</title>
-  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
@@ -87,7 +87,7 @@
 
       <div class="service-card">
         <h3>Sobrancelha</h3>
-        <p>R$ 5,00</p>
+        <p>R$ 10,00</p>
       </div>
 
       <div class="service-card">
@@ -119,9 +119,15 @@
           <option value="Corte 2 pentes">Corte 2 pentes — R$ 25,00</option>
           <option value="Corte 1 pente">Corte 1 pente — R$ 20,00</option>
           <option value="Pezinhos">Pezinhos — R$ 15,00</option>
-          <option value="Sobrancelha">Sobrancelha — R$ 5,00</option>
+          <option value="Sobrancelha">Sobrancelha — R$ 10,00</option>
           <option value="Barba">Barba — R$ 25,00</option>
         </select>
+        <div id="opcaoSobrancelha" class="opcao-adicional" hidden>
+          <label for="adicionarSobrancelha">
+            <input id="adicionarSobrancelha" type="checkbox">
+            Acrescentar sobrancelha ao corte <strong>+ R$ 5,00</strong>
+          </label>
+        </div>
         <p id="precoServico" class="preco-selecionado">Selecione um serviço para ver o valor.</p>
 
         <div class="titulo-escolha-profissional">
@@ -188,7 +194,7 @@
   </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.1"></script>
-<script src="script.js?v=18"></script>
+<script src="script.js?v=19"></script>
 
   <script>
     if ("serviceWorker" in navigator) {
