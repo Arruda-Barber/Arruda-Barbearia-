@@ -68,6 +68,11 @@
         <h3>Sobrancelha</h3>
         <p>R$ 5,00</p>
       </div>
+
+      <div class="service-card">
+        <h3>Barba</h3>
+        <p>R$ 25,00</p>
+      </div>
     </section>
 
     <section id="agendamento" class="agendamento">
@@ -82,16 +87,18 @@
         <label for="servico">Serviço</label>
         <select id="servico" required>
           <option value="">Escolha um serviço</option>
-          <option value="Corte degradê">Corte degradê</option>
-          <option value="Corte degradê (navalhado)">Corte degradê (navalhado)</option>
-          <option value="Corte social">Corte social</option>
-          <option value="Cabelo e barba">Cabelo e barba</option>
-          <option value="Cabelo, barba e sobrancelha">Cabelo, barba e sobrancelha</option>
-          <option value="Corte 2 pentes">Corte 2 pentes</option>
-          <option value="Corte 1 pente">Corte 1 pente</option>
-          <option value="Pezinhos">Pezinhos</option>
-          <option value="Sobrancelha">Sobrancelha</option>
+          <option value="Corte degradê">Corte degradê — R$ 35,00</option>
+          <option value="Corte degradê (navalhado)">Corte degradê (navalhado) — R$ 40,00</option>
+          <option value="Corte social">Corte social — R$ 35,00</option>
+          <option value="Cabelo e barba">Cabelo e barba — R$ 55,00</option>
+          <option value="Cabelo, barba e sobrancelha">Cabelo, barba e sobrancelha — R$ 60,00</option>
+          <option value="Corte 2 pentes">Corte 2 pentes — R$ 25,00</option>
+          <option value="Corte 1 pente">Corte 1 pente — R$ 20,00</option>
+          <option value="Pezinhos">Pezinhos — R$ 15,00</option>
+          <option value="Sobrancelha">Sobrancelha — R$ 5,00</option>
+          <option value="Barba">Barba — R$ 25,00</option>
         </select>
+        <p id="precoServico" class="preco-selecionado">Selecione um serviço para ver o valor.</p>
 
         <label for="profissional">Profissional</label>
         <select id="profissional" required>
@@ -129,7 +136,7 @@
   </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js?v=9"></script>
+<script src="script.js?v=10"></script>
 
   <script>
     if ("serviceWorker" in navigator) {
