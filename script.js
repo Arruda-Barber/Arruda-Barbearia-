@@ -30,6 +30,21 @@ const campoServico = document.getElementById("servico");
 const campoProfissional = document.getElementById("profissional");
 const campoData = document.getElementById("data");
 const campoHorario = document.getElementById("horario");
+const campoPrecoServico = document.getElementById("precoServico");
+
+function atualizarPrecoServico() {
+  if (!campoPrecoServico) return;
+  const servicoSelecionado = servicos[campoServico.value];
+  campoPrecoServico.textContent = servicoSelecionado
+    ? "Valor do serviço: " + servicoSelecionado.preco.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      })
+    : "Selecione um serviço para ver o valor.";
+}
+
+atualizarPrecoServico();
+
 
 if (!formulario || !campoNome || !campoServico ||
     !campoProfissional || !campoData || !campoHorario) {
@@ -251,7 +266,10 @@ campoData.addEventListener("change", function() {
   atualizarHorarios();
 });
 
-campoServico.addEventListener("change", atualizarHorarios);
+campoServico.addEventListener("change", function() {
+  atualizarPrecoServico();
+  atualizarHorarios();
+});
 
 campoProfissional.addEventListener("change", function() {
   if (
@@ -364,6 +382,7 @@ formulario.addEventListener("submit", async function(event) {
     `Nome: ${nome}\n` +
     `Telefone: ${telefoneCliente}\n` +
     `Serviço: ${servico}\n` +
+    `Valor: ${servicos[servico].preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}\n` +
     `Duração: ${duracao} minutos\n` +
     `Data: ${dataFormatada}\n` +
     `Horário: ${horario}\n\n` +
