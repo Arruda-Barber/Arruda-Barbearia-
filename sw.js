@@ -1,11 +1,10 @@
 
-const CACHE_NAME = "arruda-barber-v1";
+const CACHE_NAME = "arruda-barber-v2";
 
 const ARQUIVOS = [
   "./",
   "./index.html",
   "./style.css",
-  "./script.js",
   "./manifest.json"
 ];
 
@@ -36,12 +35,19 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
 
+  const url = new URL(event.request.url);
+
+  if (
+    url.origin === self.location.origin &&
+    url.pathname.endsWith("/script.js")
+  ) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then(resposta => {
-      return resposta ||
-        fetch(event.request).catch(() => {
-          return caches.match("./index.html");
-        });
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
     })
   );
 });
