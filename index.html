@@ -118,8 +118,28 @@
         </select>
         <p id="precoServico" class="preco-selecionado">Selecione um serviço para ver o valor.</p>
 
-        <label for="profissional">Profissional</label>
-        <select id="profissional" required>
+        <div class="titulo-escolha-profissional">
+          <label>ESCOLHA SEU PROFISSIONAL</label>
+          <span>Toque em quem vai cuidar do seu estilo</span>
+        </div>
+        <div class="cards-profissionais" role="group" aria-label="Escolha seu profissional">
+          <button type="button" class="card-profissional" data-profissional="Arruda" aria-pressed="false">
+            <span class="profissional-avatar">A</span>
+            <span class="profissional-info"><strong>ARRUDA</strong><small>BARBEIRO</small></span>
+            <span class="profissional-check" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="card-profissional" data-profissional="Felipe" aria-pressed="false">
+            <span class="profissional-avatar">F</span>
+            <span class="profissional-info"><strong>FELIPE</strong><small>BARBEIRO</small></span>
+            <span class="profissional-check" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="card-profissional" data-profissional="Thalita" aria-pressed="false">
+            <span class="profissional-avatar">T</span>
+            <span class="profissional-info"><strong>THALITA</strong><small>BARBEIRA</small></span>
+            <span class="profissional-check" aria-hidden="true">✓</span>
+          </button>
+        </div>
+        <select id="profissional" class="seletor-profissional-acessivel" required aria-label="Profissional">
           <option value="">Escolha o profissional</option>
           <option value="Arruda">Arruda</option>
           <option value="Felipe">Felipe</option>
