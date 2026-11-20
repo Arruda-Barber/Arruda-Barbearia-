@@ -203,7 +203,7 @@ async function atualizarHorarios() {
   function adicionarPeriodo(inicio, fim) {
     for (
       let minuto = inicio;
-      minuto + duracao <= fim;
+      minuto <= fim;
       minuto += 15
     ) {
       if (
@@ -317,8 +317,8 @@ formulario.addEventListener("submit", async function(event) {
   const limite = dia === 6 ? 19 * 60 : 19 * 60 + 30;
 
   const dentroDoHorario =
-    (inicioMinutos >= 9 * 60 && fimMinutos <= 11 * 60 + 30) ||
-    (inicioMinutos >= 14 * 60 && fimMinutos <= limite);
+    (inicioMinutos >= 9 * 60 && inicioMinutos <= 11 * 60 + 30) ||
+    (inicioMinutos >= 14 * 60 && inicioMinutos <= limite);
 
   if (!dentroDoHorario) {
     alert("Horário fora do expediente.");
