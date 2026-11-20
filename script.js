@@ -230,7 +230,7 @@ async function atualizarHorarios() {
 
   const dia = new Date(data + "T12:00:00").getDay();
 
-  adicionarPeriodo(9 * 60, 12 * 60);
+  adicionarPeriodo(9 * 60, 11 * 60 + 30);
 
   if (dia === 6) {
     adicionarPeriodo(14 * 60, 19 * 60);
@@ -317,7 +317,7 @@ formulario.addEventListener("submit", async function(event) {
   const limite = dia === 6 ? 19 * 60 : 19 * 60 + 30;
 
   const dentroDoHorario =
-    (inicioMinutos >= 9 * 60 && fimMinutos <= 12 * 60) ||
+    (inicioMinutos >= 9 * 60 && fimMinutos <= 11 * 60 + 30) ||
     (inicioMinutos >= 14 * 60 && fimMinutos <= limite);
 
   if (!dentroDoHorario) {
