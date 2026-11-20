@@ -260,7 +260,7 @@ formulario.addEventListener("submit", async function(event) {
 
     if (botao) {
       botao.disabled = false;
-      botao.textContent = "CONFIRMAR PELO WHATSAPP";
+      botao.textContent = "RESERVAR HORÁRIO";
     }
 
     await atualizarHorarios();
@@ -272,14 +272,14 @@ formulario.addEventListener("submit", async function(event) {
     `${partes[2]}/${partes[1]}/${partes[0]}`;
 
   const mensagem =
-    `Olá, ${profissional}! Gostaria de confirmar meu agendamento na Arruda Barber.\n\n` +
+    `Olá, ${profissional}! Acabei de reservar um horário pelo site da Arruda Barber.\n\n` +
     `Nome: ${nome}\n` +
     `Telefone: ${telefoneCliente}\n` +
     `Serviço: ${servico}\n` +
     `Duração: ${duracao} minutos\n` +
     `Data: ${dataFormatada}\n` +
     `Horário: ${horario}\n\n` +
-    `Aguardo a confirmação!`;
+    `Meu horário já está confirmado pelo site. Obrigado!`;
 
   const link =
     "https://wa.me/" +
@@ -287,7 +287,7 @@ formulario.addEventListener("submit", async function(event) {
     "?text=" +
     encodeURIComponent(mensagem);
 
-  alert("Horário reservado com sucesso!");
+  alert("Horário reservado e confirmado com sucesso!");
   window.location.href = link;
 });
 
