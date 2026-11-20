@@ -14,7 +14,7 @@
   <meta name="twitter:title" content="Arruda Barber - Agendamentos">
   <meta name="twitter:description" content="Agende aqui seu horário na Arruda Barber!">
   <title>Arruda Barber - Agendamentos</title>
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
@@ -139,7 +139,7 @@
             <span class="profissional-check" aria-hidden="true">✓</span>
           </button>
         </div>
-        <select id="profissional" class="seletor-profissional-acessivel" required aria-label="Profissional">
+        <select id="profissional" class="seletor-profissional-acessivel" aria-label="Profissional">
           <option value="">Escolha o profissional</option>
           <option value="Arruda">Arruda</option>
           <option value="Felipe">Felipe</option>
@@ -229,6 +229,32 @@
       document.addEventListener("keydown", function (evento) {
         if (evento.key === "Escape" && !modal.hidden) fecharModal();
       });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      const seletor = document.getElementById("profissional");
+      const cards = document.querySelectorAll(".card-profissional");
+      if (!seletor || !cards.length) return;
+
+      function atualizarCards() {
+        cards.forEach(function (card) {
+          const selecionado = card.dataset.profissional === seletor.value;
+          card.setAttribute("aria-pressed", selecionado ? "true" : "false");
+        });
+      }
+
+      cards.forEach(function (card) {
+        card.addEventListener("click", function () {
+          seletor.value = card.dataset.profissional;
+          atualizarCards();
+          seletor.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+      });
+
+      seletor.addEventListener("change", atualizarCards);
+      atualizarCards();
     })();
   </script>
 
