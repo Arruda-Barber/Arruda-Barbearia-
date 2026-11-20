@@ -84,9 +84,36 @@ if (botaoCancelar && campoCodigoCancelamento) {
       return;
     }
 
+    if (!cancelado || !cancelado.cancelled) {
+      alert("Código inválido, horário já cancelado ou agendamento já realizado.");
+      return;
+    }
+
     campoCodigoCancelamento.value = "";
-    alert("Agendamento cancelado com sucesso! O horário foi liberado.");
-    window.location.href = window.location.pathname;
+
+    const dataCancelada = new Date(cancelado.booking_date + "T12:00:00");
+    const diaCancelado = dataCancelada.toLocaleDateString("pt-BR", {
+      weekday: "long"
+    });
+    const partesCanceladas = cancelado.booking_date.split("-");
+    const dataCanceladaFormatada =
+      `${diaCancelado}, ${partesCanceladas[2]}/${partesCanceladas[1]}/${partesCanceladas[0]}`;
+    const mensagemProfissional =
+      `AVISO DE CANCELAMENTO - ARRUDA BARBER\\n\\n` +
+      `O cliente ${cancelado.client_name} cancelou o agendamento.\\n` +
+      `Serviço: ${cancelado.service}\\n` +
+      `Data: ${dataCanceladaFormatada}\\n` +
+      `Horário: ${String(cancelado.start_time).slice(0, 5)}\\n\\n` +
+      `O horário está liberado para um novo agendamento.`;
+
+    const linkWhatsAppProfissional =
+      "https://wa.me/" +
+      profissionais[cancelado.barber] +
+      "?text=" +
+      encodeURIComponent(mensagemProfissional);
+
+    alert("Agendamento cancelado! Vamos abrir o WhatsApp do profissional para avisar.");
+    window.location.href = linkWhatsAppProfissional;
   });
 }
 
