@@ -99,12 +99,9 @@ if (botaoCancelar && campoCodigoCancelamento) {
     const dataCanceladaFormatada =
       `${diaCancelado}, ${partesCanceladas[2]}/${partesCanceladas[1]}/${partesCanceladas[0]}`;
     const mensagemProfissional =
-      `AVISO DE CANCELAMENTO - ARRUDA BARBER\\n\\n` +
-      `O cliente ${cancelado.client_name} cancelou o agendamento.\\n` +
-      `Serviço: ${cancelado.service}\\n` +
+      `Horário cancelado, tive imprevisto e não vou conseguir comparecer.\\n\\n` +
       `Data: ${dataCanceladaFormatada}\\n` +
-      `Horário: ${String(cancelado.start_time).slice(0, 5)}\\n\\n` +
-      `O horário está liberado para um novo agendamento.`;
+      `Horário: ${String(cancelado.start_time).slice(0, 5)}.`;
 
     const linkWhatsAppProfissional =
       "https://wa.me/" +
