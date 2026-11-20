@@ -17,6 +17,7 @@ const profissionais = {
 
 const servicos = {
   "Corte degradê": { preco: 35, minutos: 30 },
+  "Corte infantil": { preco: 35, minutos: 30 },
   "Corte degradê (navalhado)": { preco: 40, minutos: 35 },
   "Corte social": { preco: 35, minutos: 30 },
   "Cabelo e barba": { preco: 55, minutos: 50 },
