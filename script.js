@@ -267,9 +267,13 @@ formulario.addEventListener("submit", async function(event) {
     return;
   }
 
+  const dataLocalAgendamento = new Date(data + "T12:00:00");
+  const diaSemana = dataLocalAgendamento.toLocaleDateString("pt-BR", {
+    weekday: "long"
+  });
   const partes = data.split("-");
   const dataFormatada =
-    `${partes[2]}/${partes[1]}/${partes[0]}`;
+    `${diaSemana}, ${partes[2]}/${partes[1]}/${partes[0]}`;
 
   const mensagem =
     `Olá, ${profissional}! Acabei de reservar um horário pelo site da Arruda Barber.\n\n` +
