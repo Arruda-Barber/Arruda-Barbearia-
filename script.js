@@ -39,6 +39,56 @@ if (!formulario || !campoNome || !campoServico ||
 }
 
 const botao = formulario.querySelector('button[type="submit"]');
+const campoCodigoCancelamento = document.getElementById("codigoCancelamento");
+const botaoCancelar = document.getElementById("botaoCancelar");
+
+if (campoCodigoCancelamento) {
+  const parametros = new URLSearchParams(window.location.search);
+  const codigoLink = parametros.get("cancel");
+  if (codigoLink) {
+    campoCodigoCancelamento.value = codigoLink;
+    document.getElementById("cancelar")?.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+if (botaoCancelar && campoCodigoCancelamento) {
+  botaoCancelar.addEventListener("click", async function() {
+    const token = campoCodigoCancelamento.value.trim();
+
+    if (!token) {
+      alert("Cole o link ou código de cancelamento recebido.");
+      return;
+    }
+
+    const confirmar = confirm("Tem certeza de que deseja cancelar este agendamento?");
+    if (!confirmar) return;
+
+    botaoCancelar.disabled = true;
+    botaoCancelar.textContent = "CANCELANDO...";
+
+    const { data: cancelado, error } = await db.rpc("cancel_booking", {
+      p_token: token
+    });
+
+    botaoCancelar.disabled = false;
+    botaoCancelar.textContent = "CANCELAR AGENDAMENTO";
+
+    if (error) {
+      console.error("Erro ao cancelar:", error);
+      alert("Não foi possível cancelar agora. Tente novamente.");
+      return;
+    }
+
+    if (!cancelado) {
+      alert("Código inválido, horário já cancelado ou agendamento já realizado.");
+      return;
+    }
+
+    campoCodigoCancelamento.value = "";
+    alert("Agendamento cancelado com sucesso! O horário foi liberado.");
+    window.location.href = window.location.pathname;
+  });
+}
 
 function dataLocal(data) {
   const ano = data.getFullYear();
@@ -275,6 +325,16 @@ formulario.addEventListener("submit", async function(event) {
   const dataFormatada =
     `${diaSemana}, ${partes[2]}/${partes[1]}/${partes[0]}`;
 
+  const tokenCancelamento = reserva && reserva.cancellation_token;
+
+  if (!tokenCancelamento) {
+    alert("Seu horário foi reservado, mas não foi possível gerar o link de cancelamento. Entre em contato com a barbearia pelo WhatsApp.");
+  }
+
+  const linkCancelamento = tokenCancelamento
+    ? `${window.location.origin}${window.location.pathname}?cancel=${encodeURIComponent(tokenCancelamento)}#cancelar`
+    : "";
+
   const mensagem =
     `Olá, ${profissional}! Acabei de reservar um horário pelo site da Arruda Barber.\n\n` +
     `Nome: ${nome}\n` +
@@ -283,7 +343,8 @@ formulario.addEventListener("submit", async function(event) {
     `Duração: ${duracao} minutos\n` +
     `Data: ${dataFormatada}\n` +
     `Horário: ${horario}\n\n` +
-    `Meu horário já está confirmado pelo site. Obrigado!`;
+    `Meu horário já está confirmado pelo site. Obrigado!\n\n` +
+    (linkCancelamento ? `Link para cancelar, se precisar: ${linkCancelamento}` : "Para cancelar, entre em contato com a barbearia.");
 
   const link =
     "https://wa.me/" +
