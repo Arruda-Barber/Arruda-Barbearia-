@@ -574,3 +574,124 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   accent-color: #d4af37;
 }
 .opcao-adicional strong { color: #d4af37; white-space: nowrap; }
+
+
+/* Leitura facilitada: mais contraste para os clientes */
+body::before {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.78)),
+    url("./C8550C37-53E1-4B14-92D8-B2CDCC5E32BE.png");
+}
+
+header, section, footer {
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
+}
+
+.agendamento > h2,
+#servicos summary,
+footer .logo,
+header .logo {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+}
+
+.agendamento > p,
+.inicio > p:last-child,
+footer p {
+  color: #ffffff;
+  font-weight: 600;
+  text-shadow: 0 2px 6px #000000;
+}
+
+.card, .servico, .service-card,
+.lista-servicos,
+.confirmacao-reserva,
+.opcao-adicional,
+.modal-redes-conteudo {
+  background: rgba(10, 10, 10, 0.96);
+}
+
+.agendamento form,
+#cancelar {
+  background: rgba(8, 8, 8, 0.90);
+  border: 1px solid rgba(212, 175, 55, 0.72);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
+}
+
+label,
+.agendamento label {
+  display: block;
+  color: #ffe08a;
+  font-size: 16px;
+  font-weight: 700;
+  text-shadow: 0 1px 4px #000000;
+}
+
+input, select {
+  color: #111111;
+  background: #ffffff;
+  border: 2px solid #d4af37;
+  font-weight: 600;
+}
+
+input::placeholder {
+  color: #555555;
+  opacity: 1;
+}
+
+input:focus, select:focus {
+  outline: 3px solid rgba(255, 224, 138, 0.55);
+  outline-offset: 2px;
+}
+
+.card-profissional {
+  background: rgba(20, 20, 20, 0.98);
+  border: 2px solid #b89635;
+}
+
+.card-profissional .profissional-info strong {
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.card-profissional .profissional-info small {
+  color: #ffe08a;
+  font-size: 10px;
+}
+
+.service-card h3,
+.card h3,
+.servico h3 {
+  color: #ffdc73;
+  text-shadow: 0 1px 4px #000000;
+}
+
+.service-card p,
+.card p,
+.servico p {
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+button {
+  text-shadow: none;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 480px) {
+  .agendamento form,
+  #cancelar {
+    padding: 16px 13px;
+  }
+
+  label,
+  .agendamento label {
+    font-size: 16px;
+  }
+
+  .service-card p {
+    font-size: 18px;
+  }
+}
