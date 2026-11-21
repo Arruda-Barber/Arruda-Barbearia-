@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "arruda-barber-v12";
+const CACHE_NAME = "arruda-barber-v13";
 
 const ARQUIVOS = [
   "./",
