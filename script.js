@@ -440,7 +440,7 @@ formulario.addEventListener("submit", async function(evento) {
     "Duração: " + duracaoTotalServico(servico) + " minutos\n" +
     "Data: " + dataFormatada + "\n" +
     "Horário: " + horario + "\n\n" +
-    "Meu horário já está confirmado pelo site. Obrigado!\n\n" +
+    "Seu horário está aguardando a confirmação do profissional.\n\n" +
     (linkCancelamento
       ? "Quero cancelar meu horário: " + linkCancelamento
       : "Para cancelar, entre em contato com a barbearia.");
