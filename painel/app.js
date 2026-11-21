@@ -42,7 +42,7 @@ function renderAll(){
  const serviceRevenue=services.reduce((a,x)=>a+Number(x.amount),0);
  const otherEntries=movements.filter(x=>x.type==="entrada").reduce((a,x)=>a+Number(x.amount),0);
  const expenses=movements.filter(x=>x.type==="saida").reduce((a,x)=>a+Number(x.amount),0);
- $("totalRevenue").textContent=brl(serviceRevenue);$("totalExpenses").textContent=brl(expenses);$("netBalance").textContent=brl(serviceRevenue+otherEntries-expenses);$("serviceCount").textContent=services.length;
+ $("totalRevenue").textContent=brl(serviceRevenue);$("totalOtherEntries").textContent=brl(otherEntries);$("totalExpenses").textContent=brl(expenses);$("netBalance").textContent=brl(serviceRevenue+otherEntries-expenses);$("serviceCount").textContent=services.length;
  $("barberStats").innerHTML=["Arruda","Felipe","Thalita"].map(name=>{const items=services.filter(x=>x.barber===name);const total=items.reduce((a,x)=>a+Number(x.amount),0);return `<div class="barber-card"><b>${name}</b><strong>${brl(total)}</strong><small>${items.length} atendimento(s) registrado(s)</small></div>`;}).join("");
  const upcoming=bookings.filter(x=>x.status!=="cancelled"&&!completedBookingIds.has(x.id)).slice(0,12);
  $("upcomingRows").innerHTML=upcoming.length?upcoming.map(x=>`<tr><td>${formatDate(x.booking_date)} ${String(x.start_time).slice(0,5)}</td><td>${esc(x.client_name)}</td><td>${esc(x.service)}</td><td>${esc(x.barber)}</td><td class="status">${esc(x.status)}</td></tr>`).join(""):`<tr><td colspan="5">Nenhum próximo agendamento.</td></tr>`;
