@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#090909">
   <title>Painel Administrativo | Arruda Barber</title>
   <link rel="icon" href="../arruda-logo-site.webp">
-  <link rel="stylesheet" href="./style.css?v=3">
+  <link rel="stylesheet" href="./style.css?v=4">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="./app.js?v=3"></script>
+  <script defer src="./app.js?v=4"></script>
 </head>
 <body>
   <main class="shell">
@@ -20,8 +20,8 @@
       <form id="loginForm">
         <label>E-mail<input id="email" type="email" autocomplete="username" value="mcarruda05@gmail.com" required></label>
         <label>Senha<input id="password" type="password" autocomplete="current-password" required></label>
+        <button id="forgotPasswordBtn" class="forgot-link full" type="button">Esqueci minha senha?</button>
         <button class="primary" type="submit">Entrar no painel</button>
-        <button id="forgotPasswordBtn" class="ghost full" type="button">Esqueci minha senha</button>
         <p id="loginError" class="error" role="alert"></p>
       </form>
       <form id="recoveryForm" hidden>
