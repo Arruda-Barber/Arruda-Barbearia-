@@ -1,5 +1,5 @@
 const SUPABASE_URL = "https://kduaktloheptwyzynppf.supabase.co";
-const SUPABASE_KEY = "sb_publishable_avmpjV37mxZihhOW_Ov8Q_YbVWyae4";
+const SUPABASE_KEY = "sb_publishable_avmpjV37mxZihhOW_Ov8VQ_YbVWyae4";
 const ADMIN_ID = "3a00229d-a83e-45e0-b02e-162960bcfd67";
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
