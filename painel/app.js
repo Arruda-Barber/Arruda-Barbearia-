@@ -31,7 +31,9 @@ async function loadData(){
 function byMonth(rows,key,month){return rows.filter(row=>String(row[key]||"").slice(0,7)===month)}
 function renderAll(){
   const month=$("monthFilter").value||currentMonth(), sm=byMonth(services,"service_date",month), mm=movements.filter(x=>String(x.created_at||"").slice(0,7)===month);
-  const attended=new Set([...sm.map(x=>x.booking_id).filter(Boolean),...bookings.filter(x=>String(x.booking_date||"").slice(0,7)===month&&x.status==="completed").map(x=>x.id)]).size, noShows=bookings.filter(x=>String(x.booking_date||"").slice(0,7)===month&&x.status==="no_show").length;\n  $("mAttended").textContent=attended;$("mNoShow").textContent=noShows;\n  const revenue=sm.reduce((sum,x)=>sum+Number(x.amount),0), income=mm.filter(x=>x.type==="entrada").reduce((sum,x)=>sum+Number(x.amount),0), expense=mm.filter(x=>x.type==="saida").reduce((sum,x)=>sum+Number(x.amount),0);
+  const attended=new Set([...sm.map(x=>x.booking_id).filter(Boolean),...bookings.filter(x=>String(x.booking_date||"").slice(0,7)===month&&x.status==="completed").map(x=>x.id)]).size, noShows=bookings.filter(x=>String(x.booking_date||"").slice(0,7)===month&&x.status==="no_show").length;
+  $("mAttended").textContent=attended;$("mNoShow").textContent=noShows;
+  const revenue=sm.reduce((sum,x)=>sum+Number(x.amount),0), income=mm.filter(x=>x.type==="entrada").reduce((sum,x)=>sum+Number(x.amount),0), expense=mm.filter(x=>x.type==="saida").reduce((sum,x)=>sum+Number(x.amount),0);
   $("mRevenue").textContent=brl(revenue);$("mCount").textContent=sm.length;$("mIncome").textContent=brl(income);$("mExpense").textContent=brl(expense);
   $("cashBalance").textContent=brl(revenue+income-expense);$("totalIn").textContent=brl(revenue+income);$("totalOut").textContent=brl(expense);
   $("cashIncome").textContent=brl(income);$("cashExpense").textContent=brl(expense);$("cashNet").textContent=brl(income-expense);
