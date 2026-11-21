@@ -78,11 +78,11 @@ button {
 body {
   background-color: #080808;
   background-image:
-    linear-gradient(rgba(0, 0, 0, 0.48), rgba(0, 0, 0, 0.72)),
+    linear-gradient(rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.48)),
     url("./arruda-logo-site.webp");
-  background-size: cover, min(82vw, 480px) auto;
-  background-position: center, center 115px;
-  background-attachment: fixed, fixed;
+  background-size: 100% 100%, min(92vw, 520px) auto;
+  background-position: center, center 95px;
+  background-attachment: scroll, scroll;
   background-repeat: no-repeat, no-repeat;
 }
 .preco-selecionado {
