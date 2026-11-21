@@ -1,11 +1,12 @@
 
-const CACHE_NAME = "arruda-barber-v11";
+const CACHE_NAME = "arruda-barber-v12";
 
 const ARQUIVOS = [
   "./",
   "./index.html",
   "./style.css",
   "./manifest.json",
+  "./arruda-logo-site.webp",
   "./C8550C37-53E1-4B14-92D8-B2CDCC5E32BE.png"
 ];
 
