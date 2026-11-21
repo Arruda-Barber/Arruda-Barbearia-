@@ -21,6 +21,21 @@
   </section>
 </div>
 
+<div id="pinView" class="auth-shell hidden">
+  <section class="auth-card">
+    <div class="brand-symbol">A<span>.</span></div>
+    <p class="eyebrow">SEGUNDA ETAPA DE SEGURANÇA</p>
+    <h1>ARRUDA <span>BARBER</span></h1>
+    <p class="muted">Conta Google confirmada. Digite seu PIN de acesso para abrir o painel.</p>
+    <form id="pinForm" class="pin-form">
+      <label>PIN de 4 dígitos<input id="adminPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="one-time-code" placeholder="••••" required></label>
+      <button class="primary full" type="submit">Acessar painel</button>
+    </form>
+    <button id="pinLogoutBtn" class="link-button" type="button">Sair da conta Google</button>
+    <p id="pinMessage" class="message" aria-live="polite"></p>
+  </section>
+</div>
+
 <div id="appView" class="app-shell hidden">
   <aside class="sidebar">
     <div class="side-brand"><div class="brand-symbol small">A<span>.</span></div><div><b>ARRUDA <span>BARBER</span></b><small>GESTÃO</small></div></div>
