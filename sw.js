@@ -1,10 +1,10 @@
-
-const CACHE_NAME = "arruda-barber-v19";
+const CACHE_NAME = "arruda-barber-android-v21";
 
 const ARQUIVOS = [
   "./",
   "./index.html",
-  "./style.css",
+  "./style.css?v=19",
+  "./script.js?v=21",
   "./manifest.json",
   "./profissionais.html",
   "./staff.js",
@@ -15,25 +15,30 @@ const ARQUIVOS = [
 
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(ARQUIVOS);
+    caches.open(CACHE_NAME).then(async cache => {
+      // Um arquivo secundário indisponível não deve impedir o site inteiro de abrir.
+      await Promise.all(ARQUIVOS.map(async arquivo => {
+        try {
+          const resposta = await fetch(arquivo, { cache: "reload" });
+          if (resposta && resposta.ok) await cache.put(arquivo, resposta);
+        } catch (erro) {
+          console.warn("Não foi possível armazenar em cache:", arquivo, erro);
+        }
+      }));
     })
   );
-
   self.skipWaiting();
 });
 
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(chaves => {
-      return Promise.all(
-        chaves
-          .filter(chave => chave !== CACHE_NAME)
-          .map(chave => caches.delete(chave))
-      );
-    })
+    caches.keys().then(chaves =>
+      Promise.all(chaves
+        .filter(chave => chave.startsWith("arruda-barber-") && chave !== CACHE_NAME)
+        .map(chave => caches.delete(chave))
+      )
+    )
   );
-
   self.clients.claim();
 });
 
@@ -42,17 +47,24 @@ self.addEventListener("fetch", event => {
 
   const url = new URL(event.request.url);
 
-  if (
-    url.origin === self.location.origin &&
-    url.pathname.endsWith("/script.js")
-  ) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
+  // Não intercepta bibliotecas externas/CDNs; evita bloquear a abertura em Android.
+  if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
+    fetch(event.request).then(resposta => {
+      if (resposta && resposta.ok) {
+        const copia = resposta.clone();
+        event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(event.request, copia)));
+      }
+      return resposta;
+    }).catch(async () => {
+      const armazenada = await caches.match(event.request);
+      if (armazenada) return armazenada;
+      if (event.request.mode === "navigate") {
+        const inicio = await caches.match("./index.html");
+        if (inicio) return inicio;
+      }
+      return Response.error();
     })
   );
 });
