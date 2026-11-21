@@ -1,35 +1,32 @@
 const SUPABASE_URL = "https://kduaktloheptwyzynppf.supabase.co";
 const SUPABASE_KEY = "sb_publishable_avmpjV37mxZihhOW_Ov8VQ_YbVWyae4";
 const ADMIN_ID = "3a00229d-a83e-45e0-b02e-162960bcfd67";
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const API_URL = SUPABASE_URL + "/functions/v1/admin-panel-api";
+const DEVICE_KEY = "arruda_barber_device_pin";
+let devicePin = localStorage.getItem(DEVICE_KEY) || "";
 const $ = id => document.getElementById(id);
 const brl = value => (Number(value)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const today = () => new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo"}).format(new Date());
 const currentMonth = () => today().slice(0,7);
-let services=[], movements=[], bookings=[], currentUser=null, recoveryMode=false;
+let services=[], movements=[], bookings=[];
 
 function toast(message){const el=$("toast");el.textContent=message;el.classList.add("show");window.setTimeout(()=>el.classList.remove("show"),3000)}
 function esc(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function setMessage(id,message,isError=false){const el=$(id);el.textContent=message;el.classList.toggle("error",isError)}
-function showApp(){ $("authView").classList.add("hidden");$("pinView").classList.add("hidden");$("appView").classList.remove("hidden"); }
-function showAuth(){ $("appView").classList.add("hidden");$("pinView").classList.add("hidden");$("authView").classList.remove("hidden"); }
-function showPin(){ $("authView").classList.add("hidden");$("appView").classList.add("hidden");$("pinView").classList.remove("hidden");$("adminPin").value="";setMessage("pinMessage",""); }
+function showApp(){ $("pinView").classList.add("hidden");$("appView").classList.remove("hidden"); }
+function showAuth(){ $("appView").classList.add("hidden");$("pinView").classList.remove("hidden");}
 function rangeFor(month){const [year,mon]=month.split("-").map(Number);return {start:month+"-01",end:new Date(year,mon,0).toLocaleDateString("en-CA")}}
 function setTab(tab){document.querySelectorAll(".tab").forEach(el=>el.classList.add("hidden"));$("tab-"+tab).classList.remove("hidden");document.querySelectorAll(".nav").forEach(el=>el.classList.toggle("active",el.dataset.tab===tab));$("pageTitle").textContent=({overview:"Visão geral",services:"Serviços realizados",cash:"Fluxo de caixa",bookings:"Agendamentos"})[tab]}
 
-async function acceptSession(user){
-  if(!user)return;
-  if(user.id!==ADMIN_ID){await db.auth.signOut();showAuth();setMessage("authMessage","Esta conta não tem autorização para acessar o painel.",true);return}
-  currentUser=user;showPin();
+async function api(action, extra={}) {
+  const response=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY},body:JSON.stringify({pin:devicePin,action,...extra})});
+  const data=await response.json().catch(()=>({error:"Resposta inválida do servidor."}));
+  if(!response.ok)throw new Error(data.error||"Não foi possível acessar o painel.");
+  return data;
 }
 async function loadData(){
-  const [s,m,b]=await Promise.all([
-    db.from("service_records").select("*").in("barber",["Arruda","Felipe"]).order("service_date",{ascending:false}).limit(1000),
-    db.from("movements").select("*").order("created_at",{ascending:false}).limit(1000),
-    db.from("barber_bookings").select("*").in("barber",["Arruda","Felipe"]).order("booking_date",{ascending:false}).limit(1000)
-  ]);
-  if(s.error)throw s.error;if(m.error)throw m.error;if(b.error)throw b.error;
-  services=s.data||[];movements=m.data||[];bookings=b.data||[];renderAll();
+  const data=await api("load");
+  services=data.services||[];movements=data.movements||[];bookings=data.bookings||[];renderAll();
 }
 function byMonth(rows,key,month){return rows.filter(row=>String(row[key]||"").slice(0,7)===month)}
 function renderAll(){
@@ -56,38 +53,18 @@ async function completeBooking(id){
   const method=prompt("Forma de pagamento: Pix, Cartão ou Dinheiro","Pix");if(!method)return;
   const normalized=method.trim().toLowerCase(),payment=normalized==="pix"?"Pix":normalized==="cartão"||normalized==="cartao"?"Cartão":normalized==="dinheiro"?"Dinheiro":null;
   if(!payment){toast("Use Pix, Cartão ou Dinheiro.");return}
-  const {error}=await db.from("service_records").insert({booking_id:booking.id,client_name:booking.client_name,service:booking.service,barber:booking.barber,service_date:booking.booking_date,amount,payment_method:payment,created_by:currentUser.id});
-  if(error){toast(error.message.includes("duplicate")?"Este agendamento já foi registrado.":error.message);return}
-  toast("Serviço concluído e registrado!");await loadData();
+  try{await api("complete-booking",{bookingId:booking.id,amount,payment});toast("Serviço concluído e registrado!");await loadData()}catch(error){toast(error.message)}
 }
 
-$("googleLoginBtn").addEventListener("click",async()=>{
-  setMessage("authMessage","Conectando com o Google...");
-  const redirectTo=window.location.origin+window.location.pathname;
-  const {error}=await db.auth.signInWithOAuth({
-    provider:"google",
-    options:{redirectTo,queryParams:{prompt:"select_account"}}
-  });
-  if(error)setMessage("authMessage","Não foi possível iniciar o login com Google: "+error.message,true);
-});
-$("logoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showAuth()});
-$("pinLogoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showAuth()});
 $("pinForm").addEventListener("submit",async event=>{
-  event.preventDefault();
-  const pin=$("adminPin").value.trim();
-  if(!/^\d{4}$/.test(pin)){setMessage("pinMessage","Digite os 4 números do PIN.",true);return;}
-  const button=event.submitter;
-  button.disabled=true;button.textContent="Verificando...";
-  const {data,error}=await db.functions.invoke("verify-admin-pin",{body:{pin}});
-  button.disabled=false;button.textContent="Acessar painel";
-  if(error){setMessage("pinMessage","Não foi possível validar o PIN. Tente novamente.",true);return;}
-  if(!data?.valid){setMessage("pinMessage","PIN incorreto. Confira e tente novamente.",true);$("adminPin").value="";return;}
-  showApp();
-  try{await loadData()}catch(err){toast("Erro ao carregar dados: "+err.message)}
+ event.preventDefault();const pin=$("adminPin").value.trim();
+ if(!/^\d{4}$/.test(pin)){setMessage("pinMessage","Digite os 4 números do PIN.",true);return;}
+ const button=event.submitter;button.disabled=true;button.textContent="Verificando...";devicePin=pin;
+ try{await api("check");localStorage.setItem(DEVICE_KEY,pin);showApp();await loadData();}
+ catch(error){devicePin="";setMessage("pinMessage",error.message,true);}
+ button.disabled=false;button.textContent="Acessar painel";
 });
-
-$("pinLogoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showAuth()});
-$("pinForm").addEventListener("submit",async event=>{event.preventDefault();const pin=$("adminPin").value.trim();if(!/^\\d{4}$/.test(pin)){setMessage("pinMessage","Digite os 4 números do PIN.",true);return;}const button=event.submitter;button.disabled=true;button.textContent="Verificando...";const {data,error}=await db.functions.invoke("verify-admin-pin",{body:{pin}});button.disabled=false;button.textContent="Acessar painel";if(error){setMessage("pinMessage","Não foi possível validar o PIN. Tente novamente.",true);return;}if(!data?.valid){setMessage("pinMessage","PIN incorreto. Confira e tente novamente.",true);$("adminPin").value="";return;}showApp();try{await loadData()}catch(err){toast("Erro ao carregar dados: "+err.message)}});
+$("logoutBtn").addEventListener("click",()=>{localStorage.removeItem(DEVICE_KEY);devicePin="";$("adminPin").value="";showAuth();setMessage("pinMessage","Painel bloqueado neste aparelho.");});
 document.querySelectorAll(".nav").forEach(button=>button.addEventListener("click",()=>setTab(button.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach(button=>button.addEventListener("click",()=>setTab(button.dataset.go)));
 $("refreshBtn").addEventListener("click",async()=>{try{await loadData();toast("Dados atualizados.")}catch(error){toast(error.message)}});
@@ -96,20 +73,9 @@ $("monthFilter").addEventListener("change",renderAll);$("serviceMonth").addEvent
 $("bookingDate").value=today();$("bookingDate").addEventListener("change",renderBookings);$("bookingBarber").addEventListener("change",renderBookings);
 $("movementForm").addEventListener("submit",async event=>{
   event.preventDefault();const amount=Number($("movAmount").value);if(!Number.isFinite(amount)||amount<=0)return;
-  const {error}=await db.from("movements").insert({type:$("movType").value,amount,description:$("movDescription").value.trim(),barber:$("movBarber").value,created_by:currentUser.id});
-  if(error){toast(error.message);return}
-  event.target.reset();$("movBarber").value="Arruda";toast("Lançamento salvo.");await loadData();
+  try{await api("add-movement",{type:$("movType").value,amount,description:$("movDescription").value.trim(),barber:$("movBarber").value});event.target.reset();$("movBarber").value="Arruda";toast("Lançamento salvo.");await loadData()}catch(error){toast(error.message)}
 });
 $("bookingsTable").addEventListener("click",event=>{const button=event.target.closest("[data-complete]");if(button)completeBooking(button.dataset.complete)});
 $("todayLabel").textContent=new Date().toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short",year:"numeric"});
 
-db.auth.onAuthStateChange((event,session)=>{
-  if(event==="SIGNED_IN"&&session){window.setTimeout(()=>acceptSession(session.user),0)}
-  if(event==="SIGNED_OUT"){currentUser=null;showAuth()}
-});
-(async()=>{
-  const {data,error}=await db.auth.getSession();
-  if(error){setMessage("authMessage","Não foi possível verificar a sessão. Atualize a página.",true);return}
-  if(data.session)await acceptSession(data.session.user);
-  else if(window.location.hash.includes("error=")){setMessage("authMessage","O login do Google não foi concluído. Confira a configuração do provedor Google no Supabase.",true)}
-})();
+(async()=>{if(devicePin){try{await api("check");showApp();await loadData();return}catch{localStorage.removeItem(DEVICE_KEY);devicePin="";}}showAuth();})();
