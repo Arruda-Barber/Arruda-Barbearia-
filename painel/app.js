@@ -11,8 +11,8 @@ let services=[], movements=[], bookings=[], currentUser=null, recoveryMode=false
 function toast(message){const el=$("toast");el.textContent=message;el.classList.add("show");window.setTimeout(()=>el.classList.remove("show"),3000)}
 function esc(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function setMessage(id,message,isError=false){const el=$(id);el.textContent=message;el.classList.toggle("error",isError)}
-function showApp(){ $("authView").classList.add("hidden");$("appView").classList.remove("hidden"); }
-function showAuth(){ $("appView").classList.add("hidden");$("authView").classList.remove("hidden"); }
+function showApp(){ $("authView").classList.add("hidden");$("pinView").classList.add("hidden");$("appView").classList.remove("hidden"); }
+function showAuth(){ $("appView").classList.add("hidden");$("pinView").classList.add("hidden");$("authView").classList.remove("hidden"); }\nfunction showPin(){ $("authView").classList.add("hidden");$("appView").classList.add("hidden");$("pinView").classList.remove("hidden");$("adminPin").value="";setMessage("pinMessage",""); }
 function rangeFor(month){const [year,mon]=month.split("-").map(Number);return {start:month+"-01",end:new Date(year,mon,0).toLocaleDateString("en-CA")}}
 function setTab(tab){document.querySelectorAll(".tab").forEach(el=>el.classList.add("hidden"));$("tab-"+tab).classList.remove("hidden");document.querySelectorAll(".nav").forEach(el=>el.classList.toggle("active",el.dataset.tab===tab));$("pageTitle").textContent=({overview:"Visão geral",services:"Serviços realizados",cash:"Fluxo de caixa",bookings:"Agendamentos"})[tab]}
 
@@ -70,7 +70,7 @@ $("googleLoginBtn").addEventListener("click",async()=>{
   });
   if(error)setMessage("authMessage","Não foi possível iniciar o login com Google: "+error.message,true);
 });
-$("logoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showAuth()});
+$("logoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showAuth()});\n$("pinLogoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showAuth()});\n$("pinForm").addEventListener("submit",async event=>{event.preventDefault();const pin=$("adminPin").value.trim();if(!/^\\d{4}$/.test(pin)){setMessage("pinMessage","Digite os 4 números do PIN.",true);return;}const button=event.submitter;button.disabled=true;button.textContent="Verificando...";const {data,error}=await db.functions.invoke("verify-admin-pin",{body:{pin}});button.disabled=false;button.textContent="Acessar painel";if(error){setMessage("pinMessage","Não foi possível validar o PIN. Tente novamente.",true);return;}if(!data?.valid){setMessage("pinMessage","PIN incorreto. Confira e tente novamente.",true);$("adminPin").value="";return;}showApp();try{await loadData()}catch(err){toast("Erro ao carregar dados: "+err.message)}});
 document.querySelectorAll(".nav").forEach(button=>button.addEventListener("click",()=>setTab(button.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach(button=>button.addEventListener("click",()=>setTab(button.dataset.go)));
 $("refreshBtn").addEventListener("click",async()=>{try{await loadData();toast("Dados atualizados.")}catch(error){toast(error.message)}});
