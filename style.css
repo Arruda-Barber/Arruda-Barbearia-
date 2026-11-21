@@ -76,14 +76,23 @@ button {
 }
 
 body {
-  background-color: #080808;
-  background-image:
-    linear-gradient(rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.48)),
-    url("./arruda-logo-site.webp");
-  background-size: 100% 100%, min(92vw, 520px) auto;
-  background-position: center, center 95px;
-  background-attachment: scroll, scroll;
-  background-repeat: no-repeat, no-repeat;
+  position: relative;
+  isolation: isolate;
+  background: #080808;
+}
+
+/* Logo Arruda Barber como marca-d'água suave no fundo */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("./arruda-logo-site.webp");
+  background-repeat: no-repeat;
+  background-position: center 95px;
+  background-size: min(92vw, 520px) auto;
+  opacity: 0.18;
 }
 .preco-selecionado {
   color: #d4af37;
