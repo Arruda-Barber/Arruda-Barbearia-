@@ -21,7 +21,16 @@
         <label>E-mail<input id="email" type="email" autocomplete="username" value="mcarruda05@gmail.com" required></label>
         <label>Senha<input id="password" type="password" autocomplete="current-password" required></label>
         <button class="primary" type="submit">Entrar no painel</button>
+        <button id="forgotPasswordBtn" class="ghost full" type="button">Esqueci minha senha</button>
         <p id="loginError" class="error" role="alert"></p>
+      </form>
+      <form id="recoveryForm" hidden>
+        <p class="muted">Defina uma nova senha para a conta administrativa.</p>
+        <label>Nova senha<input id="newPassword" type="password" minlength="8" autocomplete="new-password" required></label>
+        <label>Confirme a nova senha<input id="confirmPassword" type="password" minlength="8" autocomplete="new-password" required></label>
+        <button class="primary" type="submit">Salvar nova senha</button>
+        <button id="cancelRecoveryBtn" class="ghost" type="button">Voltar ao login</button>
+        <p id="recoveryMessage" class="error" role="alert"></p>
       </form>
     </section>
 
