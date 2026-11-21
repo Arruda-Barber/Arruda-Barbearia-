@@ -10,28 +10,17 @@
 <script defer src="./app.js"></script>
 </head>
 <body>
-<div id="authView" class="auth-shell">
+<div id="pinView" class="auth-shell">
   <section class="auth-card">
     <div class="brand-symbol">A<span>.</span></div>
-    <p class="eyebrow">ÁREA ADMINISTRATIVA</p>
+    <p class="eyebrow">ACESSO PRIVADO · ESTE APARELHO</p>
     <h1>ARRUDA <span>BARBER</span></h1>
-    <p class="muted">Acompanhe os resultados e a gestão da barbearia.</p>
-    <button id="googleLoginBtn" class="primary full google-login" type="button"><span class="google-g">G</span> Entrar com Google</button>
-    <p id="authMessage" class="message" aria-live="polite"></p>
-  </section>
-</div>
-
-<div id="pinView" class="auth-shell hidden">
-  <section class="auth-card">
-    <div class="brand-symbol">A<span>.</span></div>
-    <p class="eyebrow">SEGUNDA ETAPA DE SEGURANÇA</p>
-    <h1>ARRUDA <span>BARBER</span></h1>
-    <p class="muted">Conta Google confirmada. Digite seu PIN de acesso para abrir o painel.</p>
+    <p class="muted">Digite seu PIN uma única vez neste aparelho. O acesso ficará lembrado neste navegador.</p>
     <form id="pinForm" class="pin-form">
       <label>PIN de 4 dígitos<input id="adminPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="one-time-code" placeholder="••••" required></label>
       <button class="primary full" type="submit">Acessar painel</button>
     </form>
-    <button id="pinLogoutBtn" class="link-button" type="button">Sair da conta Google</button>
+    
     <p id="pinMessage" class="message" aria-live="polite"></p>
   </section>
 </div>
@@ -45,7 +34,7 @@
       <button class="nav" data-tab="cash"><span>▤</span> Fluxo de caixa</button>
       <button class="nav" data-tab="bookings"><span>▦</span> Agendamentos</button>
     </nav>
-    <div class="side-footer"><span class="status-dot"></span> Banco conectado<button id="logoutBtn" class="logout">Sair da conta ↗</button></div>
+    <div class="side-footer"><span class="status-dot"></span> Banco conectado<button id="logoutBtn" class="logout">Bloquear painel</button></div>
   </aside>
 
   <main class="main">
