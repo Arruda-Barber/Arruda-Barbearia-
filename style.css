@@ -76,13 +76,14 @@ button {
 }
 
 body {
+  background-color: #080808;
   background-image:
-    linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.32)),
-    url("/Arruda-Barbearia-/C8550C37-53E1-4B14-92D8-B2CDCC5E32BE.png");
-  background-size: cover;
-  background-position: center center;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+    linear-gradient(rgba(0, 0, 0, 0.48), rgba(0, 0, 0, 0.72)),
+    url("./C8550C37-53E1-4B14-92D8-B2CDCC5E32BE.png");
+  background-size: cover, min(82vw, 480px) auto;
+  background-position: center, center 115px;
+  background-attachment: fixed, fixed;
+  background-repeat: no-repeat, no-repeat;
 }
 .preco-selecionado {
   color: #d4af37;
