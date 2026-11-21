@@ -35,7 +35,7 @@ function renderAll(){
   $("mRevenue").textContent=brl(revenue);$("mCount").textContent=sm.length;$("mIncome").textContent=brl(income);$("mExpense").textContent=brl(expense);
   $("cashBalance").textContent=brl(revenue+income-expense);$("totalIn").textContent=brl(revenue+income);$("totalOut").textContent=brl(expense);
   $("cashIncome").textContent=brl(income);$("cashExpense").textContent=brl(expense);$("cashNet").textContent=brl(income-expense);
-  const barbers=["Arruda","Felipe"], totals=barbers.map(name=>({name,total:sm.filter(x=>x.barber===name).reduce((sum,x)=>sum+Number(x.amount),0),count:sm.filter(x=>x.barber===name).length})), max=Math.max(1,...totals.map(x=>x.total));
+  const barbers=["Arruda","Felipe","Thalita"], totals=barbers.map(name=>({name,total:sm.filter(x=>x.barber===name).reduce((sum,x)=>sum+Number(x.amount),0),count:sm.filter(x=>x.barber===name).length})), max=Math.max(1,...totals.map(x=>x.total));
   $("barberStats").innerHTML=totals.map(x=>'<div class="barber-row"><b>'+x.name+'</b><div class="bar-track"><div class="bar-fill" style="width:'+(x.total/max*100)+'%"></div></div><div class="barber-value">'+brl(x.total)+' <small>('+x.count+' serviços)</small></div></div>').join("");
   $("recentServices").innerHTML=sm.slice(0,7).map(serviceRow).join("")||emptyRow(5,"Nenhum serviço concluído neste mês");
   renderServices();renderMovements();renderBookings();
