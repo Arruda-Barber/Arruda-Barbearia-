@@ -11,8 +11,6 @@ let services=[], movements=[], bookings=[], currentUser=null, recoveryMode=false
 function toast(message){const el=$("toast");el.textContent=message;el.classList.add("show");window.setTimeout(()=>el.classList.remove("show"),3000)}
 function esc(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function setMessage(id,message,isError=false){const el=$(id);el.textContent=message;el.classList.toggle("error",isError)}
-function showRecovery(){recoveryMode=true;$("loginForm").classList.add("hidden");$("recoveryForm").classList.remove("hidden");setMessage("recoveryMessage","Defina sua nova senha abaixo.")}
-function showLogin(){recoveryMode=false;$("recoveryForm").classList.add("hidden");$("loginForm").classList.remove("hidden")}
 function showApp(){ $("authView").classList.add("hidden");$("appView").classList.remove("hidden"); }
 function showAuth(){ $("appView").classList.add("hidden");$("authView").classList.remove("hidden"); }
 function rangeFor(month){const [year,mon]=month.split("-").map(Number);return {start:month+"-01",end:new Date(year,mon,0).toLocaleDateString("en-CA")}}
@@ -63,32 +61,16 @@ async function completeBooking(id){
   toast("Serviço concluído e registrado!");await loadData();
 }
 
-$("loginForm").addEventListener("submit",async event=>{
-  event.preventDefault();setMessage("authMessage","");
-  const {data,error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
-  if(error){setMessage("authMessage",error.message,true);return}
-  if(data.user.id!==ADMIN_ID){await db.auth.signOut();setMessage("authMessage","Esta conta não tem autorização para acessar o painel.",true);return}
-  await acceptSession(data.user);
-});
-$("forgotBtn").addEventListener("click",async()=>{
-  const email=$("email").value.trim();if(!email){setMessage("authMessage","Informe seu e-mail para receber o link.",true);$("email").focus();return}
-  setMessage("authMessage","Enviando link de redefinição...");
+$("googleLoginBtn").addEventListener("click",async()=>{
+  setMessage("authMessage","Conectando com o Google...");
   const redirectTo=window.location.origin+window.location.pathname;
-  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo});
-  if(error){setMessage("authMessage","Não foi possível enviar o link: "+error.message,true);return}
-  setMessage("authMessage","Link enviado! Abra o e-mail e toque em redefinir senha. Depois, esta página permitirá cadastrar a nova senha.");
+  const {error}=await db.auth.signInWithOAuth({
+    provider:"google",
+    options:{redirectTo,queryParams:{prompt:"select_account"}}
+  });
+  if(error)setMessage("authMessage","Não foi possível iniciar o login com Google: "+error.message,true);
 });
-$("recoveryForm").addEventListener("submit",async event=>{
-  event.preventDefault();const password=$("newPassword").value,confirm=$("confirmPassword").value;
-  if(password.length<8){setMessage("recoveryMessage","A senha precisa ter pelo menos 8 caracteres.",true);return}
-  if(password!==confirm){setMessage("recoveryMessage","As senhas não conferem.",true);return}
-  const {data,error}=await db.auth.updateUser({password});
-  if(error){setMessage("recoveryMessage","Não foi possível salvar a senha: "+error.message,true);return}
-  setMessage("recoveryMessage","Senha atualizada com sucesso. Entrando no painel...");
-  $("newPassword").value="";$("confirmPassword").value="";
-  if(data.user)await acceptSession(data.user);
-});
-$("logoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showAuth();showLogin()});
+$("logoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showAuth()});
 document.querySelectorAll(".nav").forEach(button=>button.addEventListener("click",()=>setTab(button.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach(button=>button.addEventListener("click",()=>setTab(button.dataset.go)));
 $("refreshBtn").addEventListener("click",async()=>{try{await loadData();toast("Dados atualizados.")}catch(error){toast(error.message)}});
@@ -105,14 +87,12 @@ $("bookingsTable").addEventListener("click",event=>{const button=event.target.cl
 $("todayLabel").textContent=new Date().toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short",year:"numeric"});
 
 db.auth.onAuthStateChange((event,session)=>{
-  if(event==="PASSWORD_RECOVERY"){showRecovery();return}
-  if(event==="SIGNED_IN"&&session&&!recoveryMode){window.setTimeout(()=>acceptSession(session.user),0)}
+  if(event==="SIGNED_IN"&&session){window.setTimeout(()=>acceptSession(session.user),0)}
   if(event==="SIGNED_OUT"){currentUser=null;showAuth();showLogin()}
 });
 (async()=>{
-  if(window.location.hash.includes("type=recovery")){showRecovery();return}
   const {data,error}=await db.auth.getSession();
   if(error){setMessage("authMessage","Não foi possível verificar a sessão. Atualize a página.",true);return}
   if(data.session)await acceptSession(data.session.user);
-  else if(window.location.hash.includes("error=")){setMessage("authMessage","O link de acesso expirou ou não é válido. Solicite outro link de redefinição.",true)}
+  else if(window.location.hash.includes("error=")){setMessage("authMessage","O login do Google não foi concluído. Confira a configuração do provedor Google no Supabase.",true)}
 })();
