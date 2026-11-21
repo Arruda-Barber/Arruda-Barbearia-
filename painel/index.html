@@ -16,20 +16,8 @@
     <p class="eyebrow">ÁREA ADMINISTRATIVA</p>
     <h1>ARRUDA <span>BARBER</span></h1>
     <p class="muted">Acompanhe os resultados e a gestão da barbearia.</p>
-    <form id="loginForm">
-      <label>E-mail<input id="email" type="email" value="mcarruda05@gmail.com" autocomplete="username" required></label>
-      <label>Senha<input id="password" type="password" autocomplete="current-password" placeholder="Sua nova senha" required></label>
-      <button class="primary full" type="submit">Entrar no painel</button>
-      <button id="forgotBtn" class="link-button" type="button">Esqueci minha senha</button>
-      <p id="authMessage" class="message" aria-live="polite"></p>
-    </form>
-    <form id="recoveryForm" class="hidden">
-      <p class="muted">Crie uma nova senha para sua conta.</p>
-      <label>Nova senha<input id="newPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Mínimo de 8 caracteres" required></label>
-      <label>Confirmar nova senha<input id="confirmPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Digite novamente" required></label>
-      <button class="primary full" type="submit">Salvar nova senha</button>
-      <p id="recoveryMessage" class="message" aria-live="polite"></p>
-    </form>
+    <button id="googleLoginBtn" class="primary full google-login" type="button"><span class="google-g">G</span> Entrar com Google</button>
+    <p id="authMessage" class="message" aria-live="polite"></p>
   </section>
 </div>
 
