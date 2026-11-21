@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080808">
+<title>Área dos profissionais | Arruda Barber</title>
+<link rel="stylesheet" href="./staff.css?v=1">
+<script defer src="./staff.js?v=1"></script>
+</head>
+<body>
+<main class="staff-shell">
+  <a class="back-link" href="./">← Voltar ao site</a>
+  <header class="staff-brand"><span>💈</span><div><b>ARRUDA BARBER</b><small>ÁREA DOS PROFISSIONAIS</small></div></header>
+  <section id="loginView" class="staff-card">
+    <p class="eyebrow">ACESSO INDIVIDUAL</p>
+    <h1>Entrar na agenda</h1>
+    <p class="muted">Digite seu PIN pessoal de 6 números para visualizar e responder aos seus horários.</p>
+    <form id="staffLogin">
+      <label for="staffPin">Seu PIN</label>
+      <input id="staffPin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="••••••" required>
+      <button class="primary" type="submit">Acessar minha agenda</button>
+    </form>
+    <p id="loginMessage" class="message" role="status"></p>
+  </section>
+  <section id="agendaView" class="hidden">
+    <div class="agenda-heading">
+      <div><p class="eyebrow">AGENDA INDIVIDUAL</p><h1>Olá, <span id="barberName"></span>!</h1><p class="muted">Confira seus horários e responda às novas solicitações.</p></div>
+      <button id="logout" class="secondary">Sair</button>
+    </div>
+    <div class="legend"><span class="pending-dot"></span> Aguardando sua resposta <span class="confirmed-dot"></span> Confirmado</div>
+    <div id="bookingList" class="booking-list"></div>
+    <button id="refresh" class="secondary refresh">↻ Atualizar horários</button>
+    <p id="agendaMessage" class="message" role="status"></p>
+  </section>
+  <footer>ARRUDA BARBER · AGENDA INTEGRADA</footer>
+</main>
+</body>
+</html>
