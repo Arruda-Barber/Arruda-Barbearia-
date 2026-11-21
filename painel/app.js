@@ -70,7 +70,7 @@ document.querySelectorAll("[data-go]").forEach(button=>button.addEventListener("
 $("refreshBtn").addEventListener("click",async()=>{try{await loadData();toast("Dados atualizados.")}catch(error){toast(error.message)}});
 ["monthFilter","serviceMonth","cashMonth"].forEach(id=>$(id).value=currentMonth());
 $("monthFilter").addEventListener("change",renderAll);$("serviceMonth").addEventListener("change",renderServices);$("serviceBarber").addEventListener("change",renderServices);$("cashMonth").addEventListener("change",renderMovements);
-$("bookingDate").value=today();$("bookingDate").addEventListener("change",renderBookings);$("bookingBarber").addEventListener("change",renderBookings);
+$("bookingDate").value=currentMonth()+"-01";$("bookingDate").addEventListener("change",renderBookings);$("bookingBarber").addEventListener("change",renderBookings);
 $("movementForm").addEventListener("submit",async event=>{
   event.preventDefault();const amount=Number($("movAmount").value);if(!Number.isFinite(amount)||amount<=0)return;
   try{await api("add-movement",{type:$("movType").value,amount,description:$("movDescription").value.trim(),barber:$("movBarber").value});event.target.reset();$("movBarber").value="Arruda";toast("Lançamento salvo.");await loadData()}catch(error){toast(error.message)}
