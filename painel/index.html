@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090909"><title>Arruda Barber | Painel</title>
+<link rel="stylesheet" href="./style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1"></script>
+<script defer src="./app.js"></script>
+</head>
+<body>
+<div class="login-wrap" id="loginView">
+  <section class="login-card">
+    <div class="brand-mark">A<span>.</span></div><p class="eyebrow">ÁREA ADMINISTRATIVA</p>
+    <h1>ARRUDA <span>BARBER</span></h1><p class="muted">Entre para acessar o financeiro e os resultados da barbearia.</p>
+    <form id="loginForm"><label>E-mail</label><input id="email" type="email" value="mcarruda05@gmail.com" autocomplete="username" required>
+    <label>Senha</label><input id="password" type="password" autocomplete="current-password" placeholder="Digite sua senha" required>
+    <button class="primary full" type="submit">Entrar no painel</button><p class="error" id="loginError"></p></form>
+  </section>
+</div>
+<div id="appView" class="hidden">
+  <aside class="sidebar"><div class="side-brand"><b>A<span>.</span></b><div>ARRUDA <strong>BARBER</strong><small>GESTÃO</small></div></div>
+  <nav><button class="nav active" data-tab="overview">◫ <span>Visão geral</span></button><button class="nav" data-tab="services">✂ <span>Serviços realizados</span></button><button class="nav" data-tab="cash">▤ <span>Fluxo de caixa</span></button><button class="nav" data-tab="bookings">▦ <span>Agendamentos</span></button></nav>
+  <div class="side-bottom"><span class="online-dot"></span> Conectado ao banco <button id="logoutBtn" class="logout">Sair da conta ↗</button></div></aside>
+  <main class="main">
+    <header class="topbar"><div><p class="eyebrow">PAINEL DE CONTROLE</p><h1 id="pageTitle">Visão geral</h1></div><div class="top-right"><span id="todayLabel"></span><button id="refreshBtn" class="ghost">↻ Atualizar</button></div></header>
+    <div class="content">
+      <section id="tab-overview" class="tab">
+        <div class="welcome"><div><p class="eyebrow">ARRUDA BARBER</p><h2>Seu negócio, <em>sob controle.</em></h2><p>Resumo financeiro e desempenho da equipe.</p></div><div class="welcome-icon">💈</div></div>
+        <div class="filters"><label>Mês de referência <input type="month" id="monthFilter"></label></div>
+        <div class="metrics">
+          <article class="metric"><span>FATURAMENTO DO MÊS</span><strong id="mRevenue">R$ 0,00</strong><small>Serviços concluídos</small></article>
+          <article class="metric"><span>SERVIÇOS REALIZADOS</span><strong id="mCount">0</strong><small>Atendimentos concluídos</small></article>
+          <article class="metric"><span>ENTRADAS EXTRAS</span><strong id="mIncome">R$ 0,00</strong><small>Outras entradas registradas</small></article>
+          <article class="metric"><span>DESPESAS</span><strong id="mExpense">R$ 0,00</strong><small>Saídas registradas</small></article>
+        </div>
+        <div class="two-col"><section class="panel"><div class="panel-head"><div><p class="eyebrow">DESEMPENHO</p><h3>Resultado por barbeiro</h3></div></div><div id="barberStats" class="barber-stats"></div></section>
+        <section class="panel"><div class="panel-head"><div><p class="eyebrow">SALDO DO MÊS</p><h3>Fluxo de caixa</h3></div></div><div class="balance" id="cashBalance">R$ 0,00</div><p class="muted">Serviços + outras entradas − despesas</p><div class="cash-lines"><div><span>Entradas totais</span><b id="totalIn">R$ 0,00</b></div><div><span>Saídas totais</span><b id="totalOut">R$ 0,00</b></div></div></section></div>
+        <section class="panel"><div class="panel-head"><div><p class="eyebrow">MOVIMENTAÇÃO</p><h3>Últimos serviços realizados</h3></div><button class="text-btn" data-go="services">Ver todos →</button></div><div class="table-wrap"><table><thead><tr><th>DATA</th><th>CLIENTE</th><th>SERVIÇO</th><th>BARBEIRO</th><th>VALOR</th></tr></thead><tbody id="recentServices"></tbody></table></div></section>
+      </section>
+      <section id="tab-services" class="tab hidden"><div class="section-intro"><div><p class="eyebrow">HISTÓRICO</p><h2>Serviços realizados</h2><p class="muted">Somente serviços concluídos entram no faturamento.</p></div></div><div class="filters"><label>Mês <input type="month" id="serviceMonth"></label><label>Barbeiro <select id="serviceBarber"><option value="">Todos</option><option>Arruda</option><option>Felipe</option><option>Thalita</option></select></label></div><section class="panel"><div class="table-wrap"><table><thead><tr><th>DATA</th><th>CLIENTE</th><th>SERVIÇO</th><th>BARBEIRO</th><th>PAGAMENTO</th><th>VALOR</th></tr></thead><tbody id="servicesTable"></tbody></table></div></section></section>
+      <section id="tab-cash" class="tab hidden"><div class="section-intro"><div><p class="eyebrow">CONTROLE FINANCEIRO</p><h2>Fluxo de caixa</h2><p class="muted">Registre entradas extras e despesas da barbearia.</p></div></div><div class="metrics compact"><article class="metric"><span>ENTRADAS EXTRAS</span><strong id="cashIncome">R$ 0,00</strong></article><article class="metric"><span>DESPESAS</span><strong id="cashExpense">R$ 0,00</strong></article><article class="metric"><span>SALDO DO PERÍODO</span><strong id="cashNet">R$ 0,00</strong></article></div>
+      <section class="panel"><div class="panel-head"><div><p class="eyebrow">NOVO LANÇAMENTO</p><h3>Adicionar movimentação</h3></div></div><form id="movementForm" class="movement-form"><label>Tipo<select id="movType"><option value="entrada">Entrada</option><option value="saida">Despesa</option></select></label><label>Descrição<input id="movDescription" placeholder="Ex.: Venda de produto, aluguel..." required></label><label>Valor (R$)<input id="movAmount" type="number" min="0.01" step="0.01" placeholder="0,00" required></label><label>Responsável<select id="movBarber"><option>Arruda</option><option>Felipe</option><option>Thalita</option><option>Barbearia</option></select></label><button class="primary" type="submit">Salvar lançamento</button></form></section>
+      <section class="panel"><div class="panel-head"><div><p class="eyebrow">REGISTROS</p><h3>Movimentações do mês</h3></div><label class="inline-filter">Mês <input type="month" id="cashMonth"></label></div><div class="table-wrap"><table><thead><tr><th>DATA</th><th>TIPO</th><th>DESCRIÇÃO</th><th>RESPONSÁVEL</th><th>VALOR</th></tr></thead><tbody id="movementsTable"></tbody></table></div></section></section>
+      <section id="tab-bookings" class="tab hidden"><div class="section-intro"><div><p class="eyebrow">AGENDA INTEGRADA</p><h2>Agendamentos</h2><p class="muted">Marque como concluído somente depois de realizar o atendimento.</p></div></div><div class="filters"><label>Data a partir de <input type="date" id="bookingDate"></label><label>Barbeiro <select id="bookingBarber"><option value="">Todos</option><option>Arruda</option><option>Felipe</option><option>Thalita</option></select></label></div><section class="panel"><div class="table-wrap"><table><thead><tr><th>DATA / HORA</th><th>CLIENTE</th><th>SERVIÇO</th><th>BARBEIRO</th><th>STATUS</th><th>AÇÃO</th></tr></thead><tbody id="bookingsTable"></tbody></table></div></section></section>
+      <p class="footer-note">ARRUDA BARBER · Painel administrativo privado</p>
+    </div>
+  </main>
+</div>
+<div id="toast" class="toast"></div>
+</body></html>
