@@ -40,7 +40,16 @@ function renderAll(){
   const barbers=["Arruda","Felipe","Thalita"], totals=barbers.map(name=>({name,total:sm.filter(x=>x.barber===name).reduce((sum,x)=>sum+Number(x.amount),0),count:sm.filter(x=>x.barber===name).length})), max=Math.max(1,...totals.map(x=>x.total));
   $("barberStats").innerHTML=totals.map(x=>'<div class="barber-row"><b>'+x.name+'</b><div class="bar-track"><div class="bar-fill" style="width:'+(x.total/max*100)+'%"></div></div><div class="barber-value">'+brl(x.total)+' <small>('+x.count+' serviços)</small></div></div>').join("");
   $("recentServices").innerHTML=sm.slice(0,7).map(serviceRow).join("")||emptyRow(5,"Nenhum serviço concluído neste mês");
+  renderOverviewStatus(month);
   renderServices();renderMovements();renderBookings();
+}
+function renderOverviewStatus(month){
+  const rows=bookings.filter(x=>String(x.booking_date||"").slice(0,7)===month&&x.status!=="cancelled");
+  const attended=rows.filter(x=>x.status==="completed"||services.some(s=>s.booking_id===x.id)).sort((a,b)=>(b.booking_date+" "+b.start_time).localeCompare(a.booking_date+" "+a.start_time));
+  const missed=rows.filter(x=>x.status==="no_show").sort((a,b)=>(b.booking_date+" "+b.start_time).localeCompare(a.booking_date+" "+a.start_time));
+  const row=x=>'<div style="display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px 0;border-bottom:1px solid rgba(128,128,128,.2)"><div><b>'+esc(x.client_name)+'</b><div class="muted" style="font-size:12px">'+esc(x.service)+' · '+esc(x.barber)+'</div></div><div style="text-align:right;font-size:12px;white-space:nowrap">'+esc(x.booking_date)+'<br>'+esc(String(x.start_time||"").slice(0,5))+'</div></div>';
+  $("overviewAttended").innerHTML=attended.map(row).join("")||'<p class="muted">Nenhum atendimento registrado neste mês.</p>';
+  $("overviewNoShow").innerHTML=missed.map(row).join("")||'<p class="muted">Nenhuma falta registrada neste mês.</p>';
 }
 function emptyRow(cols,message){return '<tr><td colspan="'+cols+'" style="text-align:center;color:#888;padding:25px">'+esc(message)+'</td></tr>'}
 function serviceRow(x){return '<tr><td>'+esc(x.service_date)+'</td><td>'+esc(x.client_name)+'</td><td>'+esc(x.service)+'</td><td>'+esc(x.barber)+'</td><td class="amount">'+brl(x.amount)+'</td></tr>'}
