@@ -20,8 +20,7 @@ function setTab(tab){document.querySelectorAll(".tab").forEach(el=>el.classList.
 async function acceptSession(user){
   if(!user)return;
   if(user.id!==ADMIN_ID){await db.auth.signOut();showAuth();setMessage("authMessage","Esta conta não tem autorização para acessar o painel.",true);return}
-  currentUser=user;showApp();
-  try{await loadData()}catch(error){toast("Erro ao carregar dados: "+error.message)}
+  currentUser=user;showPin();
 }
 async function loadData(){
   const [s,m,b]=await Promise.all([
@@ -73,6 +72,21 @@ $("googleLoginBtn").addEventListener("click",async()=>{
 });
 $("logoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showAuth()});
 $("pinLogoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showAuth()});
+$("pinForm").addEventListener("submit",async event=>{
+  event.preventDefault();
+  const pin=$("adminPin").value.trim();
+  if(!/^\d{4}$/.test(pin)){setMessage("pinMessage","Digite os 4 números do PIN.",true);return;}
+  const button=event.submitter;
+  button.disabled=true;button.textContent="Verificando...";
+  const {data,error}=await db.functions.invoke("verify-admin-pin",{body:{pin}});
+  button.disabled=false;button.textContent="Acessar painel";
+  if(error){setMessage("pinMessage","Não foi possível validar o PIN. Tente novamente.",true);return;}
+  if(!data?.valid){setMessage("pinMessage","PIN incorreto. Confira e tente novamente.",true);$("adminPin").value="";return;}
+  showApp();
+  try{await loadData()}catch(err){toast("Erro ao carregar dados: "+err.message)}
+});
+
+$("pinLogoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showAuth()});
 $("pinForm").addEventListener("submit",async event=>{event.preventDefault();const pin=$("adminPin").value.trim();if(!/^\\d{4}$/.test(pin)){setMessage("pinMessage","Digite os 4 números do PIN.",true);return;}const button=event.submitter;button.disabled=true;button.textContent="Verificando...";const {data,error}=await db.functions.invoke("verify-admin-pin",{body:{pin}});button.disabled=false;button.textContent="Acessar painel";if(error){setMessage("pinMessage","Não foi possível validar o PIN. Tente novamente.",true);return;}if(!data?.valid){setMessage("pinMessage","PIN incorreto. Confira e tente novamente.",true);$("adminPin").value="";return;}showApp();try{await loadData()}catch(err){toast("Erro ao carregar dados: "+err.message)}});
 document.querySelectorAll(".nav").forEach(button=>button.addEventListener("click",()=>setTab(button.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach(button=>button.addEventListener("click",()=>setTab(button.dataset.go)));
@@ -91,7 +105,7 @@ $("todayLabel").textContent=new Date().toLocaleDateString("pt-BR",{weekday:"shor
 
 db.auth.onAuthStateChange((event,session)=>{
   if(event==="SIGNED_IN"&&session){window.setTimeout(()=>acceptSession(session.user),0)}
-  if(event==="SIGNED_OUT"){currentUser=null;showAuth();showLogin()}
+  if(event==="SIGNED_OUT"){currentUser=null;showAuth()}
 });
 (async()=>{
   const {data,error}=await db.auth.getSession();
