@@ -77,10 +77,10 @@ button {
 
 body {
   background-image:
-    linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.55)),
+    linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.32)),
     url("/Arruda-Barbearia-/C8550C37-53E1-4B14-92D8-B2CDCC5E32BE.png");
   background-size: cover;
-  background-position: center;
+  background-position: center center;
   background-attachment: fixed;
   background-repeat: no-repeat;
 }
