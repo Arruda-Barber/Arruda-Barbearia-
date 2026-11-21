@@ -61,7 +61,7 @@
 
       <section id="tab-services" class="tab hidden">
         <div class="section-heading"><div><p class="eyebrow">HISTÓRICO</p><h2>Serviços realizados</h2><p class="muted">Acompanhe os atendimentos concluídos por profissional.</p></div></div>
-        <div class="filters"><label>Mês<input type="month" id="serviceMonth"></label><label>Barbeiro<select id="serviceBarber"><option value="">Todos</option><option>Arruda</option><option>Felipe</option></select></label></div>
+        <div class="filters"><label>Mês<input type="month" id="serviceMonth"></label><label>Barbeiro<select id="serviceBarber"><option value="">Todos</option><option>Arruda</option><option>Felipe</option><option>Thalita</option></select></label></div>
         <section class="panel"><div class="table-wrap"><table><thead><tr><th>DATA</th><th>CLIENTE</th><th>SERVIÇO</th><th>BARBEIRO</th><th>PAGAMENTO</th><th>VALOR</th></tr></thead><tbody id="servicesTable"></tbody></table></div></section>
       </section>
 
@@ -73,7 +73,7 @@
             <label>Tipo<select id="movType"><option value="entrada">Entrada</option><option value="saida">Despesa</option></select></label>
             <label>Descrição<input id="movDescription" maxlength="120" placeholder="Ex.: Venda de produto, aluguel..." required></label>
             <label>Valor (R$)<input id="movAmount" type="number" min="0.01" step="0.01" placeholder="0,00" required></label>
-            <label>Responsável<select id="movBarber"><option>Arruda</option><option>Felipe</option><option>Barbearia</option></select></label>
+            <label>Responsável<select id="movBarber"><option>Arruda</option><option>Felipe</option><option>Thalita</option><option>Barbearia</option></select></label>
             <button class="primary" type="submit">Salvar lançamento</button>
           </form>
         </section>
@@ -82,7 +82,7 @@
 
       <section id="tab-bookings" class="tab hidden">
         <div class="section-heading"><div><p class="eyebrow">AGENDA INTEGRADA</p><h2>Agendamentos</h2><p class="muted">Registre o serviço depois que o atendimento for realizado.</p></div></div>
-        <div class="filters"><label>Data a partir de<input type="date" id="bookingDate"></label><label>Barbeiro<select id="bookingBarber"><option value="">Todos</option><option>Arruda</option><option>Felipe</option></select></label></div>
+        <div class="filters"><label>Data a partir de<input type="date" id="bookingDate"></label><label>Barbeiro<select id="bookingBarber"><option value="">Todos</option><option>Arruda</option><option>Felipe</option><option>Thalita</option></select></label></div>
         <section class="panel"><div class="table-wrap"><table><thead><tr><th>DATA / HORA</th><th>CLIENTE</th><th>SERVIÇO</th><th>BARBEIRO</th><th>STATUS</th><th>AÇÃO</th></tr></thead><tbody id="bookingsTable"></tbody></table></div></section>
       </section>
       <p class="footer-note">ARRUDA BARBER · PAINEL ADMINISTRATIVO PRIVADO</p>
