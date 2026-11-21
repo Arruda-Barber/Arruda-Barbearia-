@@ -110,6 +110,7 @@ db.auth.onAuthStateChange((event,session)=>{
   if(event==="SIGNED_OUT"){currentUser=null;showAuth();showLogin()}
 });
 (async()=>{
+  if(window.location.hash.includes("type=recovery")){showRecovery();return}
   const {data,error}=await db.auth.getSession();
   if(error){setMessage("authMessage","Não foi possível verificar a sessão. Atualize a página.",true);return}
   if(data.session)await acceptSession(data.session.user);
