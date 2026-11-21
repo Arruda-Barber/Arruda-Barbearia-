@@ -7,7 +7,7 @@
 <title>Arruda Barber | Gestão</title>
 <link rel="stylesheet" href="./style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1"></script>
-<script defer src="./app.js?v=20261121-7"></script>
+<script defer src="./app.js?v=20261121-8"></script>
 </head>
 <body>
 <div id="pinView" class="auth-shell">
@@ -53,6 +53,10 @@
           <article class="metric"><span>CLIENTES QUE FALTARAM</span><strong id="mNoShow">0</strong><small>Faltas registradas no mês</small></article>
           <article class="metric"><span>ENTRADAS EXTRAS</span><strong id="mIncome">R$ 0,00</strong><small>Outras entradas</small></article>
           <article class="metric"><span>DESPESAS</span><strong id="mExpense">R$ 0,00</strong><small>Saídas registradas</small></article>
+        </div>
+        <div class="two-col">
+          <section class="panel"><div class="panel-head"><div><p class="eyebrow">ATENDIMENTOS</p><h3>Quem foi atendido</h3></div></div><div id="overviewAttended"></div></section>
+          <section class="panel"><div class="panel-head"><div><p class="eyebrow">FALTAS</p><h3>Quem não compareceu</h3></div></div><div id="overviewNoShow"></div></section>
         </div>
         <div class="two-col">
           <section class="panel"><div class="panel-head"><div><p class="eyebrow">DESEMPENHO</p><h3>Resultado por barbeiro</h3></div></div><div id="barberStats" class="barber-stats"></div></section>
