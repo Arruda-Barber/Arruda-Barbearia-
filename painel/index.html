@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090909">
+  <title>Painel Administrativo | Arruda Barber</title>
+  <link rel="icon" href="../arruda-logo-site.webp">
+  <link rel="stylesheet" href="./style.css?v=1">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="./app.js?v=1"></script>
+</head>
+<body>
+  <main class="shell">
+    <section id="loginView" class="login-card">
+      <img src="../arruda-logo-site.webp" alt="Arruda Barber" class="logo">
+      <p class="eyebrow">ÁREA RESTRITA</p>
+      <h1>Painel administrativo</h1>
+      <p class="muted">Entre com a conta administrativa do Arruda.</p>
+      <form id="loginForm">
+        <label>E-mail<input id="email" type="email" autocomplete="username" value="mcarruda05@gmail.com" required></label>
+        <label>Senha<input id="password" type="password" autocomplete="current-password" required></label>
+        <button class="primary" type="submit">Entrar no painel</button>
+        <p id="loginError" class="error" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="appView" hidden>
+      <header class="topbar">
+        <div class="brand"><img src="../arruda-logo-site.webp" alt=""><div><span class="eyebrow">ADMINISTRATIVO</span><h1>Arruda Barber</h1></div></div>
+        <button id="logoutBtn" class="ghost">Sair</button>
+      </header>
+      <div class="welcome"><div><p class="eyebrow">VISÃO GERAL DA BARBEARIA</p><h2>Seu negócio, em números.</h2><p class="muted">Acompanhe todos os profissionais em um só lugar.</p></div><label class="month-label">Mês de referência<input id="monthFilter" type="month"></label></div>
+      <nav class="tabs">
+        <button class="tab active" data-tab="overview">Resumo</button>
+        <button class="tab" data-tab="services">Atendimentos</button>
+        <button class="tab" data-tab="finance">Financeiro</button>
+      </nav>
+
+      <section id="overview" class="tab-panel">
+        <div class="metrics">
+          <article class="metric"><span>Faturamento recebido</span><strong id="totalRevenue">R$ 0,00</strong><small>Serviços registrados como realizados</small></article>
+          <article class="metric"><span>Despesas</span><strong id="totalExpenses">R$ 0,00</strong><small>Saídas registradas no mês</small></article>
+          <article class="metric"><span>Saldo do mês</span><strong id="netBalance">R$ 0,00</strong><small>Entradas menos saídas</small></article>
+          <article class="metric"><span>Atendimentos realizados</span><strong id="serviceCount">0</strong><small>Não inclui reservas futuras</small></article>
+        </div>
+        <div class="panel"><div class="panel-heading"><div><p class="eyebrow">DESEMPENHO</p><h3>Faturamento por profissional</h3></div></div><div id="barberStats" class="barber-stats"></div></div>
+        <div class="panel"><div class="panel-heading"><div><p class="eyebrow">AGENDA</p><h3>Próximos agendamentos</h3></div><span class="muted">Reservas não são receita</span></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Status</th></tr></thead><tbody id="upcomingRows"></tbody></table></div></div>
+      </section>
+
+      <section id="services" class="tab-panel" hidden>
+        <div class="section-grid">
+          <div class="panel"><p class="eyebrow">NOVO REGISTRO</p><h3>Registrar atendimento realizado</h3><p class="muted">Registre somente depois de concluir o serviço e receber o pagamento.</p>
+            <form id="serviceForm" class="form-grid">
+              <label>Agendamento (opcional)<select id="bookingSelect"><option value="">Atendimento sem agendamento</option></select></label>
+              <label>Nome do cliente<input id="clientName" required maxlength="80" placeholder="Nome do cliente"></label>
+              <label>Serviço<input id="serviceName" required placeholder="Ex.: Corte degradê"></label>
+              <label>Profissional<select id="serviceBarber" required><option>Arruda</option><option>Felipe</option><option>Thalita</option></select></label>
+              <label>Valor recebido (R$)<input id="serviceAmount" type="number" min="0.01" step="0.01" required placeholder="35,00"></label>
+              <label>Forma de pagamento<select id="paymentMethod" required><option>Pix</option><option>Cartão</option><option>Dinheiro</option></select></label>
+              <label>Data do atendimento<input id="serviceDate" type="date" required></label>
+              <label class="full">Observações<input id="serviceNotes" maxlength="250" placeholder="Opcional"></label>
+              <button class="primary full" type="submit">Salvar atendimento realizado</button>
+              <p id="serviceMessage" class="form-message full"></p>
+            </form>
+          </div>
+          <div class="panel"><p class="eyebrow">HISTÓRICO</p><h3>Atendimentos do mês</h3><div class="table-wrap"><table><thead><tr><th>Data</th><th>Cliente / serviço</th><th>Profissional</th><th>Valor</th></tr></thead><tbody id="serviceRows"></tbody></table></div></div>
+        </div>
+      </section>
+
+      <section id="finance" class="tab-panel" hidden>
+        <div class="section-grid">
+          <div class="panel"><p class="eyebrow">CONTROLE DE CAIXA</p><h3>Registrar movimentação</h3>
+            <form id="movementForm" class="form-grid">
+              <label>Tipo<select id="movementType"><option value="saida">Despesa / saída</option><option value="entrada">Outra entrada</option></select></label>
+              <label>Valor (R$)<input id="movementAmount" type="number" min="0.01" step="0.01" required placeholder="0,00"></label>
+              <label>Descrição<input id="movementDescription" required maxlength="120" placeholder="Ex.: Compra de produtos"></label>
+              <label>Profissional<select id="movementBarber"><option>Arruda</option><option>Felipe</option><option>Thalita</option><option>Barbearia</option></select></label>
+              <button class="primary full" type="submit">Salvar movimentação</button><p id="movementMessage" class="form-message full"></p>
+            </form>
+          </div>
+          <div class="panel"><p class="eyebrow">MOVIMENTAÇÕES</p><h3>Entradas e saídas do mês</h3><div class="table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th></tr></thead><tbody id="movementRows"></tbody></table></div></div>
+        </div>
+      </section>
+      <footer>Arruda Barber · Painel privado</footer>
+    </section>
+  </main>
+</body>
+</html>
