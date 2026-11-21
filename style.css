@@ -81,18 +81,20 @@ body {
   background: #080808;
 }
 
-/* Logo Arruda Barber como marca-d'água suave no fundo */
+/* Imagem escolhida como fundo do site Arruda Barber */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: url("./C8550C37-53E1-4B14-92D8-B2CDCC5E32BE.png");
-  background-repeat: no-repeat;
-  background-position: center 95px;
-  background-size: min(92vw, 520px) auto;
-  opacity: 0.18;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.48), rgba(0, 0, 0, 0.62)),
+    url("./C8550C37-53E1-4B14-92D8-B2CDCC5E32BE.png");
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover;
+  opacity: 1;
 }
 .preco-selecionado {
   color: #d4af37;
