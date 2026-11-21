@@ -13,6 +13,29 @@ $("serviceDate").value = dateISO(today);
 function showError(el,msg){el.textContent=msg;el.classList.add("error");}
 function showMessage(el,msg,error=false){el.textContent=msg;el.classList.toggle("error",error);}
 function monthRange(){const value=$("monthFilter").value||dateISO(new Date()).slice(0,7);const [y,m]=value.split("-").map(Number);return {start:`${y}-${String(m).padStart(2,"0")}-01`,end:dateISO(new Date(y,m,0))};}
+let recoveryMode=false;
+const panelRedirect=window.location.origin+window.location.pathname;
+$("forgotPasswordBtn").addEventListener("click",async()=>{
+ const email=$("email").value.trim();
+ if(!email){showError($("loginError"),"Informe o e-mail da conta primeiro.");return;}
+ showMessage($("loginError"),"Enviando link de recuperação...");
+ const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:panelRedirect});
+ if(error){showError($("loginError"),"Não foi possível enviar o link. "+error.message);return;}
+ showMessage($("loginError"),"Enviamos um link de recuperação para o e-mail cadastrado. Confira também o spam.");
+});
+$("cancelRecoveryBtn").addEventListener("click",()=>{recoveryMode=false;$("recoveryForm").hidden=true;$("loginForm").hidden=false;$("forgotPasswordBtn").hidden=false;$("recoveryMessage").textContent="";});
+$("recoveryForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const p=$("newPassword").value, confirm=$("confirmPassword").value;
+ if(p.length<8){showError($("recoveryMessage"),"Use pelo menos 8 caracteres.");return;}
+ if(p!==confirm){showError($("recoveryMessage"),"As senhas não coincidem.");return;}
+ showMessage($("recoveryMessage"),"Atualizando senha...");
+ const {error}=await db.auth.updateUser({password:p});
+ if(error){showError($("recoveryMessage"),"Não foi possível atualizar: "+error.message);return;}
+ recoveryMode=false;$("recoveryForm").hidden=true;$("loginForm").hidden=false;$("forgotPasswordBtn").hidden=false;
+ $("password").value=p;showMessage($("loginError"),"Senha atualizada. Entrando...");
+ await guardSession();
+});
 async function guardSession(){
  const {data:{session}}=await db.auth.getSession();
  if(!session){$("loginView").hidden=false;$("appView").hidden=true;return;}
@@ -20,9 +43,16 @@ async function guardSession(){
  if(error||!user||user.id!==ADMIN_ID){await db.auth.signOut();$("loginView").hidden=false;$("appView").hidden=true;showError($("loginError"),"Esta conta não tem permissão para acessar o painel.");return;}
  currentUser=user;$("loginView").hidden=true;$("appView").hidden=false;await loadAll();
 }
-$("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="Verificando acesso...";const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){showError($("loginError"),"Não foi possível entrar. Confira e-mail e senha.");return;}await guardSession();});
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="Verificando acesso...";const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){showError($("loginError"),"Falha no login: "+error.message);return;}await guardSession();});
 $("logoutBtn").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;await guardSession();});
-db.auth.onAuthStateChange((_event)=>{setTimeout(()=>guardSession(),0);});
+db.auth.onAuthStateChange((event)=>{
+ if(event==="PASSWORD_RECOVERY"){
+  recoveryMode=true;$("loginView").hidden=false;$("appView").hidden=true;
+  $("loginForm").hidden=true;$("forgotPasswordBtn").hidden=true;$("recoveryForm").hidden=false;
+  return;
+ }
+ if(!recoveryMode)setTimeout(()=>guardSession(),0);
+});
 document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b===btn));document.querySelectorAll(".tab-panel").forEach(p=>p.hidden=p.id!==btn.dataset.tab);}));
 $("monthFilter").addEventListener("change",loadAll);
 async function loadAll(){
