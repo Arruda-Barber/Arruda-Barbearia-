@@ -1,10 +1,10 @@
-const CACHE_NAME = "arruda-barber-android-v21";
+const CACHE_NAME = "arruda-barber-android-v22";
 
 const ARQUIVOS = [
   "./",
   "./index.html",
   "./style.css?v=19",
-  "./script.js?v=21",
+  "./script.js?v=22",
   "./manifest.json",
   "./profissionais.html",
   "./staff.js",
