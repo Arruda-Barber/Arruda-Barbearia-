@@ -127,7 +127,14 @@ function atualizarPrecoServico() {
 }
 
 atualizarPrecoServico();
-campoData.min = dataHoraSaoPaulo().data;
+// Não ofereça como primeira opção um dia em que a barbearia está fechada.
+function proximaDataDeAtendimento() {
+  const agora = dataHoraSaoPaulo().data;
+  const data = new Date(agora + "T12:00:00");
+  while (data.getDay() === 0 || data.getDay() === 1) data.setDate(data.getDate() + 1);
+  return data.getFullYear() + "-" + String(data.getMonth() + 1).padStart(2, "0") + "-" + String(data.getDate()).padStart(2, "0");
+}
+campoData.min = proximaDataDeAtendimento();
 
 if (campoCodigoCancelamento) {
   const parametros = new URLSearchParams(window.location.search);
@@ -218,14 +225,8 @@ async function atualizarHorarios() {
 }
 
 campoData.addEventListener("change", function() {
-  if (campoData.value && !diaPermitido(campoData.value, campoProfissional.value)) {
-    alert(campoProfissional.value === "Arruda"
-      ? "Arruda não atende às quartas-feiras. Escolha outro dia."
-      : "A barbearia não atende aos domingos e às segundas-feiras.");
-    campoData.value = "";
-    campoHorario.innerHTML = '<option value="">Escolha outra data</option>';
-    return;
-  }
+  // Mantém a data visível para que o seletor do celular continue editável.
+  // Dias fechados apenas não exibem horários; o cliente pode escolher outra data.
   atualizarHorarios();
 });
 
@@ -242,10 +243,7 @@ if (campoAdicionarSobrancelha) {
 }
 
 campoProfissional.addEventListener("change", function() {
-  if (campoData.value && !diaPermitido(campoData.value, campoProfissional.value)) {
-    alert("Arruda não atende às quartas-feiras. Escolha outro dia.");
-    campoData.value = "";
-  }
+  // Trocar de profissional não apaga a data escolhida pelo cliente.
   atualizarHorarios();
 });
 
