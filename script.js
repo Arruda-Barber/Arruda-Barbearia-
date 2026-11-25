@@ -8,6 +8,25 @@ if (!window.supabase || typeof window.supabase.createClient !== "function") {
 }
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const VAPID_PUBLIC_KEY = "BMNeInES4l5-De3Hz49uz9owNcwB8S_Ii_Y8Fd_4AEwXim-xOnNjEreFSXMbdSkk0t7PU-7zotXAIPmDLqO0";
+function vapidBytes(value){const pad="=".repeat((4-value.length%4)%4);const raw=atob((value+pad).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(raw,c=>c.charCodeAt(0));}
+const botaoNotificacoesCliente=document.getElementById("ativarNotificacoesCliente");
+if(botaoNotificacoesCliente){
+ botaoNotificacoesCliente.addEventListener("click",async()=>{
+  botaoNotificacoesCliente.disabled=true;botaoNotificacoesCliente.textContent="ATIVANDO...";
+  try{
+   if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window))throw new Error("No iPhone, adicione o site à Tela de Início e abra pelo ícone para ativar avisos.");
+   const permission=await Notification.requestPermission();
+   if(permission!=="granted")throw new Error("Permissão de notificação não concedida.");
+   const reg=await navigator.serviceWorker.register("./sw.js");await navigator.serviceWorker.ready;
+   let sub=await reg.pushManager.getSubscription();
+   if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(VAPID_PUBLIC_KEY)});
+   localStorage.setItem("arruda_client_push_subscription",JSON.stringify(sub.toJSON()));
+   botaoNotificacoesCliente.textContent="✓ AVISOS ATIVADOS";
+  }catch(e){alert(e.message||"Não foi possível ativar avisos.");botaoNotificacoesCliente.disabled=false;botaoNotificacoesCliente.textContent="🔔 TENTAR ATIVAR AVISOS";}
+ });
+}
+
 
 const profissionais = {
   Arruda: "5555992294941",
@@ -400,6 +419,16 @@ formulario.addEventListener("submit", async function(evento) {
 
     if (resposta.error) throw resposta.error;
     reserva = resposta.data;
+    const inscricaoCliente=localStorage.getItem("arruda_client_push_subscription");
+    if(inscricaoCliente && reserva && reserva.booking_id){
+      try{
+        await fetch("https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api",{
+          method:"POST",mode:"cors",cache:"no-store",
+          headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
+          body:JSON.stringify({action:"subscribe-client",bookingId:reserva.booking_id,subscription:JSON.parse(inscricaoCliente)})
+        });
+      }catch(erro){console.warn("Inscrição do cliente não vinculada:",erro);}
+    }
     // Dispara o alerta do profissional após o banco confirmar a reserva.
     if(reserva && reserva.booking_id){
       fetch("https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api",{
