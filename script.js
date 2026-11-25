@@ -8,7 +8,7 @@ if (!window.supabase || typeof window.supabase.createClient !== "function") {
 }
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const VAPID_PUBLIC_KEY = "BMNeInES4l5-De3Hz49uz9owNcwB8S_Ii_Y8Fd_4AEwXim-xOnNjEreFSXMbdSkk0t7PU-7zotXAIPmDLqO0";
+const VAPID_PUBLIC_KEY = "BMNeInES4l5-De3Hz49uz8os9owNcwB8S_Ii_Y8Fd_4AEwXim-xOnNjEreFSXMbdSkk0t7PU-7zotXAIPmDLqO0";
 function vapidBytes(value){const pad="=".repeat((4-value.length%4)%4);const raw=atob((value+pad).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(raw,c=>c.charCodeAt(0));}
 const botaoNotificacoesCliente=document.getElementById("ativarNotificacoesCliente");
 if(botaoNotificacoesCliente){
