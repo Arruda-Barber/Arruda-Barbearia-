@@ -1,7 +1,21 @@
 const API="https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api";
 const KEY="sb_publishable_avmpjV37mxZihhOW_Ov8VQ_YbVWyae4";
 const $=id=>document.getElementById(id);
-let pin=sessionStorage.getItem("arruda_staff_pin")||"", barber="";\nlet previousBookingIds=null, pollingStarted=false;\nfunction notifyNewBookings(rows){\n const ids=new Set(rows.map(x=>String(x.id)));\n if(previousBookingIds===null){previousBookingIds=ids;return;}\n const added=rows.filter(x=>!previousBookingIds.has(String(x.id))&&x.status==="pending");\n previousBookingIds=ids;\n added.forEach(x=>{\n  const message=x.client_name+" — "+x.service+" — "+fmtDate(x.booking_date)+" às "+fmtTime(x.start_time);\n  $("agendaMessage").textContent="Novo agendamento: "+message;\n  if("Notification" in window && Notification.permission==="granted"){try{new Notification("Arruda Barber: novo horário",{body:message,tag:String(x.id)});}catch(e){}}\n  if(navigator.vibrate)navigator.vibrate([200,100,200]);\n });\n}\nfunction startPolling(){if(pollingStarted)return;pollingStarted=true;setInterval(()=>{if(pin)load(true);},15000);}
+let pin=sessionStorage.getItem("arruda_staff_pin")||"", barber="";
+let previousBookingIds=null, pollingStarted=false;
+function notifyNewBookings(rows){
+ const ids=new Set(rows.map(x=>String(x.id)));
+ if(previousBookingIds===null){previousBookingIds=ids;return;}
+ const added=rows.filter(x=>!previousBookingIds.has(String(x.id))&&x.status==="pending");
+ previousBookingIds=ids;
+ added.forEach(x=>{
+  const message=x.client_name+" — "+x.service+" — "+fmtDate(x.booking_date)+" às "+fmtTime(x.start_time);
+  $("agendaMessage").textContent="Novo agendamento: "+message;
+  if("Notification" in window && Notification.permission==="granted"){try{new Notification("Arruda Barber: novo horário",{body:message,tag:String(x.id)});}catch(e){}}
+  if(navigator.vibrate)navigator.vibrate([200,100,200]);
+ });
+}
+function startPolling(){if(pollingStarted)return;pollingStarted=true;setInterval(()=>{if(pin)load(true);},15000);}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function fmtDate(v){const [y,m,d]=String(v).slice(0,10).split("-").map(Number);return new Date(y,m-1,d,12).toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});}
 function fmtTime(v){return String(v||"").slice(0,5);}
