@@ -22,26 +22,48 @@
 <p class="small">Copie a chave privada diretamente para Supabase → Edge Functions → Secrets, no campo VAPID_PRIVATE_KEY. Não coloque essa chave no GitHub nem no código do site. Guarde a pública para enviar ao suporte da configuração.</p>
 </section>
 <script>
-const $=id=>document.getElementById(id);
-function b64url(bytes){let s="";for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replaceAll("+","-").replaceAll("/","_").replace(/=+$/,"");}
-$("generate").addEventListener("click",async()=>{
- const button=$("generate");button.disabled=true;$("status").textContent="Gerando chaves neste dispositivo...";
- try{
-  if(!crypto.subtle)throw new Error("Este navegador não oferece geração criptográfica segura. Abra esta página no Safari ou Chrome atualizado.");
-  const pair=await crypto.subtle.generateKey({name:"ECDH",namedCurve:"P-256"},true,["deriveBits"]);
-  const pub=new Uint8Array(await crypto.subtle.exportKey("raw",pair.publicKey));
-  const jwk=await crypto.subtle.exportKey("jwk",pair.privateKey);
-  const decode=s=>Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((s.length+3)%4)),c=>c.charCodeAt(0));
-  $("pub").value=b64url(pub);
-  $("priv").value=b64url(decode(jwk.d));
-  $("result").classList.remove("hidden");
-  $("status").textContent="Par criado com sucesso. Copie os dois valores para os locais indicados.";
- }catch(e){$("status").textContent=e.message||"Não foi possível gerar as chaves.";}
- finally{button.disabled=false;}
-});
-document.querySelectorAll("[data-copy]").forEach(b=>b.addEventListener("click",async()=>{
- const el=$(b.dataset.copy);
- try{await navigator.clipboard.writeText(el.value);b.textContent="Copiado ✓";}catch(e){el.focus();el.select();b.textContent="Selecione e copie o texto";}});
-});
+(function(){
+ const el=id=>document.getElementById(id);
+ const status=el("status");
+ status.textContent="Gerador carregado. Toque no botão para criar as chaves.";
+ function toBase64Url(bytes){
+  let binary="";
+  for(let i=0;i<bytes.length;i++) binary+=String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
+ }
+ function fromBase64Url(value){
+  let s=value.replace(/-/g,"+").replace(/_/g,"/");
+  while(s.length%4) s+="=";
+  const binary=atob(s), out=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) out[i]=binary.charCodeAt(i);
+  return out;
+ }
+ el("generate").addEventListener("click",async function(){
+  const button=el("generate");
+  button.disabled=true;
+  status.textContent="Gerando... aguarde alguns segundos.";
+  try{
+   if(!window.isSecureContext) throw new Error("Abra esta página pelo endereço https no Safari.");
+   if(!window.crypto || !window.crypto.subtle) throw new Error("O navegador bloqueou a geração segura. Abra no Safari atualizado.");
+   const pair=await window.crypto.subtle.generateKey({name:"ECDH",namedCurve:"P-256"},true,["deriveBits"]);
+   const publicBytes=new Uint8Array(await window.crypto.subtle.exportKey("raw",pair.publicKey));
+   const privateJwk=await window.crypto.subtle.exportKey("jwk",pair.privateKey);
+   el("pub").value=toBase64Url(publicBytes);
+   el("priv").value=toBase64Url(fromBase64Url(privateJwk.d));
+   el("result").classList.remove("hidden");
+   status.textContent="Chaves geradas com sucesso neste iPhone.";
+  }catch(error){
+   status.textContent="Não foi possível gerar: "+(error && error.message ? error.message : String(error));
+  }finally{button.disabled=false;}
+ });
+ document.querySelectorAll("[data-copy]").forEach(function(button){
+  button.addEventListener("click",async function(){
+   const field=el(button.getAttribute("data-copy"));
+   field.focus();field.select();
+   try{await navigator.clipboard.writeText(field.value);button.textContent="Copiado ✓";}
+   catch(error){button.textContent="Texto selecionado: toque em Copiar no menu do iPhone";}
+  });
+ });
+})();
 </script>
 </main></body></html>
