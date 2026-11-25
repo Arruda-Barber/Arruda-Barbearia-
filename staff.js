@@ -1,7 +1,7 @@
 const API="https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api";
 const KEY="sb_publishable_avmpjV37mxZihhOW_Ov8VQ_YbVWyae4";
 const $=id=>document.getElementById(id);
-let pin=sessionStorage.getItem("arruda_staff_pin")||"", barber="";
+let pin=sessionStorage.getItem("arruda_staff_pin")||"", barber="";\nlet previousBookingIds=null, pollingStarted=false;\nfunction notifyNewBookings(rows){\n const ids=new Set(rows.map(x=>String(x.id)));\n if(previousBookingIds===null){previousBookingIds=ids;return;}\n const added=rows.filter(x=>!previousBookingIds.has(String(x.id))&&x.status==="pending");\n previousBookingIds=ids;\n added.forEach(x=>{\n  const message=x.client_name+" — "+x.service+" — "+fmtDate(x.booking_date)+" às "+fmtTime(x.start_time);\n  $("agendaMessage").textContent="Novo agendamento: "+message;\n  if("Notification" in window && Notification.permission==="granted"){try{new Notification("Arruda Barber: novo horário",{body:message,tag:String(x.id)});}catch(e){}}\n  if(navigator.vibrate)navigator.vibrate([200,100,200]);\n });\n}\nfunction startPolling(){if(pollingStarted)return;pollingStarted=true;setInterval(()=>{if(pin)load(true);},15000);}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function fmtDate(v){const [y,m,d]=String(v).slice(0,10).split("-").map(Number);return new Date(y,m-1,d,12).toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});}
 function fmtTime(v){return String(v||"").slice(0,5);}
@@ -20,9 +20,9 @@ function render(rows){
  }).join("");
 }
 async function load(){$("agendaMessage").textContent="Carregando horários...";try{const d=await api();barber=d.barber;$("barberName").textContent=barber;render(d.bookings||[]);$("agendaMessage").textContent="Agenda atualizada.";}catch(e){$("agendaMessage").textContent=e.message;if(/PIN|tentativas|bloqueado/i.test(e.message)){sessionStorage.removeItem("arruda_staff_pin");pin="";showLogin();}}}
-$("staffLogin").addEventListener("submit",async e=>{e.preventDefault();const value=$("staffPin").value.trim();if(!/^\d{6}$/.test(value))return;$("loginMessage").textContent="Verificando acesso...";pin=value;try{const d=await api();sessionStorage.setItem("arruda_staff_pin",pin);barber=d.barber;showAgenda();await load();}catch(err){pin="";$("loginMessage").textContent=err.message;}});
+$("staffLogin").addEventListener("submit",async e=>{e.preventDefault();const value=$("staffPin").value.trim();if(!/^\d{6}$/.test(value))return;$("loginMessage").textContent="Verificando acesso...";pin=value;try{const d=await api();sessionStorage.setItem("arruda_staff_pin",pin);barber=d.barber;showAgenda();await load();startPolling();}catch(err){pin="";$("loginMessage").textContent=err.message;}});
 $("logout").addEventListener("click",()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";barber="";$("staffPin").value="";showLogin();$("loginMessage").textContent="Você saiu da sua agenda.";});
-$("refresh").addEventListener("click",load);
+$("refresh").addEventListener("click",load);\nconst notifyButton=$("enableNotifications");\nif(notifyButton){\n if(!("Notification" in window)){notifyButton.textContent="Notificações não disponíveis neste navegador";notifyButton.disabled=true;}\n else if(Notification.permission==="granted"){notifyButton.textContent="Notificações ativadas ✓";notifyButton.disabled=true;}\n notifyButton.addEventListener("click",async()=>{try{const p=await Notification.requestPermission();if(p==="granted"){notifyButton.textContent="Notificações ativadas ✓";notifyButton.disabled=true;new Notification("Arruda Barber",{body:"Avisaremos quando chegar um novo agendamento."});}else $("agendaMessage").textContent="Permissão de notificação não concedida.";}catch(e){$("agendaMessage").textContent="Não foi possível ativar notificações neste navegador.";} });\n}
 const prices={"Corte degradê":35,"Corte infantil":35,"Corte degradê (navalhado)":40,"Corte social":35,"Cabelo e barba":55,"Cabelo, barba e sobrancelha":60,"Corte 2 pentes":25,"Corte 1 pente":20,"Pezinhos":15,"Sobrancelha":10,"Barba":25};
 $("bookingList").addEventListener("click",async e=>{
  const finish=e.target.closest("[data-finish]");
@@ -61,4 +61,4 @@ $("bookingList").addEventListener("click",async e=>{
   catch(err){$("agendaMessage").textContent=err.message;decision.disabled=false;}
  }
 });
-if(pin){api().then(d=>{barber=d.barber;showAgenda();load();}).catch(()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";showLogin();});}else showLogin();
+if(pin){api().then(d=>{barber=d.barber;showAgenda();load();startPolling();}).catch(()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";showLogin();});}else showLogin();
