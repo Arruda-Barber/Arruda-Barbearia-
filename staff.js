@@ -37,11 +37,25 @@ async function load(silent=false){if(!silent)$("agendaMessage").textContent="Car
 $("staffLogin").addEventListener("submit",async e=>{e.preventDefault();const value=$("staffPin").value.trim();if(!/^\d{6}$/.test(value))return;$("loginMessage").textContent="Verificando acesso...";pin=value;try{const d=await api();sessionStorage.setItem("arruda_staff_pin",pin);barber=d.barber;showAgenda();await load();startPolling();}catch(err){pin="";$("loginMessage").textContent=err.message;}});
 $("logout").addEventListener("click",()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";barber="";$("staffPin").value="";showLogin();$("loginMessage").textContent="Você saiu da sua agenda.";});
 $("refresh").addEventListener("click",load);
+const VAPID_PUBLIC_KEY="BMNeInES4l5-De3Hz49uz8os9owNcwB8S_Ii_Y8Fd_4AEwXim-xOnNjEreFSXMbdSkk0t7PU-7zotXAIPmDLqO0";
+function base64UrlToBytes(value){const padding="=".repeat((4-value.length%4)%4);const raw=atob((value+padding).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(raw,c=>c.charCodeAt(0));}
 const notifyButton=$("enableNotifications");
 if(notifyButton){
- if(!("Notification" in window)){notifyButton.textContent="Notificações não disponíveis neste navegador";notifyButton.disabled=true;}
- else if(Notification.permission==="granted"){notifyButton.textContent="Notificações ativadas ✓";notifyButton.disabled=true;}
- notifyButton.addEventListener("click",async()=>{try{const p=await Notification.requestPermission();if(p==="granted"){notifyButton.textContent="Notificações ativadas ✓";notifyButton.disabled=true;new Notification("Arruda Barber",{body:"Avisaremos quando chegar um novo agendamento."});}else $("agendaMessage").textContent="Permissão de notificação não concedida.";}catch(e){$("agendaMessage").textContent="Não foi possível ativar notificações neste navegador.";} });
+ notifyButton.addEventListener("click",async()=>{
+  notifyButton.disabled=true;notifyButton.textContent="Ativando notificações...";
+  try{
+   if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window))throw new Error("Este navegador não oferece notificações push. No iPhone, adicione o site à Tela de Início e abra pelo ícone.");
+   const permission=await Notification.requestPermission();
+   if(permission!=="granted")throw new Error("Permissão de notificação não concedida.");
+   const registration=await navigator.serviceWorker.register("./sw.js");
+   await navigator.serviceWorker.ready;
+   let subscription=await registration.pushManager.getSubscription();
+   if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:base64UrlToBytes(VAPID_PUBLIC_KEY)});
+   await api("subscribe-staff",{subscription:subscription.toJSON()});
+   notifyButton.textContent="Notificações ativadas ✓";
+   $("agendaMessage").textContent="Este celular receberá alertas de novos agendamentos, mesmo com a agenda fechada.";
+  }catch(e){$("agendaMessage").textContent=e.message||"Não foi possível ativar notificações neste navegador.";notifyButton.disabled=false;notifyButton.textContent="🔔 Tentar ativar notificações novamente";}
+ });
 }
 const prices={"Corte degradê":35,"Corte infantil":35,"Corte degradê (navalhado)":40,"Corte social":35,"Cabelo e barba":55,"Cabelo, barba e sobrancelha":60,"Corte 2 pentes":25,"Corte 1 pente":20,"Pezinhos":15,"Sobrancelha":10,"Barba":25};
 $("bookingList").addEventListener("click",async e=>{
