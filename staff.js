@@ -19,7 +19,7 @@ function startPolling(){if(pollingStarted)return;pollingStarted=true;setInterval
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function fmtDate(v){const [y,m,d]=String(v).slice(0,10).split("-").map(Number);return new Date(y,m-1,d,12).toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});}
 function fmtTime(v){return String(v||"").slice(0,5);}
-async function api(action="list",extra={}){const r=await fetch(API,{method:"POST",mode:"cors",cache:"no-store",headers:{"Content-Type":"application/json","apikey":KEY,"Authorization":"Bearer "+KEY},body:JSON.stringify({pin,action,...extra})});const d=await r.json().catch(()=>({error:"Resposta inválida do servidor."}));if(!r.ok)throw new Error(d.error||"Não foi possível acessar a agenda.");return d;}
+async function api(action="list",extra={}){const r=await fetch(API,{method:"POST",mode:"cors",cache:"no-store",headers:{"Content-Type":"application/json","apikey":KEY,"Authorization":"Bearer "+KEY},body:JSON.stringify({pin,action,...extra})});const d=await r.json().catch(()=>({error:"Resposta inválida do servidor."}));if(!r.ok){const err=new Error(d.error||"Não foi possível acessar a agenda.");err.details=d.errors||[];throw err;}return d;}
 function showAgenda(){$("loginView").classList.add("hidden");$("agendaView").classList.remove("hidden");}
 function showLogin(){$("agendaView").classList.add("hidden");$("loginView").classList.remove("hidden");}
 function render(rows){
@@ -48,7 +48,7 @@ if(testButton){
    $("agendaMessage").textContent=result.sent>0?"Notificação de teste enviada ao seu celular! Confira a tela bloqueada e a Central de Notificações.":"O servidor não confirmou o envio.";
    testButton.textContent="✓ Teste enviado";
   }catch(e){
-   $("agendaMessage").textContent=e.message||"Não foi possível enviar a notificação de teste.";
+   $("agendaMessage").textContent=(e.message||"Não foi possível enviar a notificação de teste.")+(e.details?.length?" Detalhes: "+e.details.map(x=>"HTTP "+x.status+" "+x.message).join(" | "):"");
    testButton.disabled=false;testButton.textContent="📲 Enviar notificação de teste";
   }
  });
