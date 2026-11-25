@@ -23,7 +23,7 @@
 </section>
 <script>
 const $=id=>document.getElementById(id);
-function b64url(bytes){let s="";for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/,"");}
+function b64url(bytes){let s="";for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replaceAll("+","-").replaceAll("/","_").replace(/=+$/,"");}
 $("generate").addEventListener("click",async()=>{
  const button=$("generate");button.disabled=true;$("status").textContent="Gerando chaves neste dispositivo...";
  try{
