@@ -4,7 +4,7 @@ const ARQUIVOS = [
   "./",
   "./index.html",
   "./style.css?v=19",
-  "./script.js?v=22",
+  "./script.js?v=23",
   "./manifest.json",
   "./profissionais.html",
   "./staff.js?v=4",
