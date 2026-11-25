@@ -42,6 +42,34 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
+self.addEventListener("push", event => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (_) {
+    data = { body: event.data ? event.data.text() : "" };
+  }
+  const title = data.title || "Arruda Barber";
+  const options = {
+    body: data.body || "Você tem uma atualização de agendamento.",
+    icon: "./arruda-logo-site.webp",
+    badge: "./arruda-logo-site.webp",
+    tag: data.tag || "arruda-barber-notification",
+    data: { url: data.url || "./" },
+    renotify: false
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const target = event.notification.data && event.notification.data.url || "./";
+  event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+    for (const client of list) {
+      if ("focus" in client) return client.focus();
+    }
+    return clients.openWindow(target);
+  }));
+});
+
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
 
