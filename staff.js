@@ -37,7 +37,12 @@ async function load(silent=false){if(!silent)$("agendaMessage").textContent="Car
 $("staffLogin").addEventListener("submit",async e=>{e.preventDefault();const value=$("staffPin").value.trim();if(!/^\d{6}$/.test(value))return;$("loginMessage").textContent="Verificando acesso...";pin=value;try{const d=await api();sessionStorage.setItem("arruda_staff_pin",pin);barber=d.barber;showAgenda();await load();startPolling();}catch(err){pin="";$("loginMessage").textContent=err.message;}});
 $("logout").addEventListener("click",()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";barber="";$("staffPin").value="";showLogin();$("loginMessage").textContent="Você saiu da sua agenda.";});
 $("refresh").addEventListener("click",load);
-const notifyButton=$("enableNotifications");\nif(notifyButton){\n if(!("Notification" in window)){notifyButton.textContent="Notificações não disponíveis neste navegador";notifyButton.disabled=true;}\n else if(Notification.permission==="granted"){notifyButton.textContent="Notificações ativadas ✓";notifyButton.disabled=true;}\n notifyButton.addEventListener("click",async()=>{try{const p=await Notification.requestPermission();if(p==="granted"){notifyButton.textContent="Notificações ativadas ✓";notifyButton.disabled=true;new Notification("Arruda Barber",{body:"Avisaremos quando chegar um novo agendamento."});}else $("agendaMessage").textContent="Permissão de notificação não concedida.";}catch(e){$("agendaMessage").textContent="Não foi possível ativar notificações neste navegador.";} });\n}
+const notifyButton=$("enableNotifications");
+if(notifyButton){
+ if(!("Notification" in window)){notifyButton.textContent="Notificações não disponíveis neste navegador";notifyButton.disabled=true;}
+ else if(Notification.permission==="granted"){notifyButton.textContent="Notificações ativadas ✓";notifyButton.disabled=true;}
+ notifyButton.addEventListener("click",async()=>{try{const p=await Notification.requestPermission();if(p==="granted"){notifyButton.textContent="Notificações ativadas ✓";notifyButton.disabled=true;new Notification("Arruda Barber",{body:"Avisaremos quando chegar um novo agendamento."});}else $("agendaMessage").textContent="Permissão de notificação não concedida.";}catch(e){$("agendaMessage").textContent="Não foi possível ativar notificações neste navegador.";} });
+}
 const prices={"Corte degradê":35,"Corte infantil":35,"Corte degradê (navalhado)":40,"Corte social":35,"Cabelo e barba":55,"Cabelo, barba e sobrancelha":60,"Corte 2 pentes":25,"Corte 1 pente":20,"Pezinhos":15,"Sobrancelha":10,"Barba":25};
 $("bookingList").addEventListener("click",async e=>{
  const finish=e.target.closest("[data-finish]");
