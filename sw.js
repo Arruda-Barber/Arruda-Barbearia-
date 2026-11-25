@@ -1,4 +1,4 @@
-const CACHE_NAME = "arruda-barber-android-v23";
+const CACHE_NAME = "arruda-barber-android-v24";
 
 const ARQUIVOS = [
   "./",
@@ -7,7 +7,7 @@ const ARQUIVOS = [
   "./script.js?v=22",
   "./manifest.json",
   "./profissionais.html",
-  "./staff.js?v=3",
+  "./staff.js?v=4",
   "./staff.css",
   "./arruda-logo-site.webp",
   "./C8550C37-53E1-4B14-92D8-B2CDCC5E32BE.png"
