@@ -39,6 +39,20 @@ $("logout").addEventListener("click",()=>{sessionStorage.removeItem("arruda_staf
 $("refresh").addEventListener("click",load);
 const VAPID_PUBLIC_KEY="BMNeInES4l5-De3Hz49uz8os9owNcwB8S_Ii_Y8Fd_4AEwXim-xOnNjEreFSXMbdSkk0t7PU-7zotXAIPmDLqO0";
 function base64UrlToBytes(value){const padding="=".repeat((4-value.length%4)%4);const raw=atob((value+padding).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(raw,c=>c.charCodeAt(0));}
+const testButton=$("testNotifications");
+if(testButton){
+ testButton.addEventListener("click",async()=>{
+  testButton.disabled=true;testButton.textContent="Enviando teste...";
+  try{
+   const result=await api("test-push");
+   $("agendaMessage").textContent=result.sent>0?"Notificação de teste enviada ao seu celular! Confira a tela bloqueada e a Central de Notificações.":"O servidor não confirmou o envio.";
+   testButton.textContent="✓ Teste enviado";
+  }catch(e){
+   $("agendaMessage").textContent=e.message||"Não foi possível enviar a notificação de teste.";
+   testButton.disabled=false;testButton.textContent="📲 Enviar notificação de teste";
+  }
+ });
+}
 const notifyButton=$("enableNotifications");
 if(notifyButton){
  notifyButton.addEventListener("click",async()=>{
