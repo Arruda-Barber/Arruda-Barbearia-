@@ -274,7 +274,8 @@ if (botaoTentarHorarios) {
 
 if (botaoEnviarWhatsAppReserva) {
   botaoEnviarWhatsAppReserva.addEventListener("click", function() {
-    if (linkWhatsAppReserva) window.location.assign(linkWhatsAppReserva);
+    if (!linkWhatsAppReserva) { alert("Link do WhatsApp ainda não foi preparado. Confira se o agendamento foi concluído."); return; }
+    window.open(linkWhatsAppReserva, "_self");
   });
 }
 
