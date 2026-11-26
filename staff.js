@@ -123,33 +123,13 @@ $("bookingList").addEventListener("click",async e=>{
  if(decision){
   const choice=decision.dataset.decision;
   if(!confirm(choice==="confirmed"?"Deseja confirmar este horário?":"Deseja recusar este horário?"))return;
-  let clientPhone=decision.dataset.phone||"";
-  if(choice==="confirmed"){
-   if(!clientPhone){
-    clientPhone=prompt("Este agendamento antigo não tem WhatsApp salvo. Digite o número com DDD:");
-    if(clientPhone===null)return;
-   }
-   clientPhone=clientPhone.replace(/\D/g,"");
-   if(clientPhone.length===10||clientPhone.length===11)clientPhone="55"+clientPhone;
-   if(!/^55[1-9][0-9][0-9]{8,9}$/.test(clientPhone)){$("agendaMessage").textContent="WhatsApp inválido. Confira o DDD e o número.";return;}
-  }
-  let whatsappWindow=null;
-  if(choice==="confirmed"){whatsappWindow=window.open("about:blank","_blank");}
   decision.disabled=true;
   try{
    await api("decide",{bookingId:decision.dataset.id,decision:choice});
-   if(choice==="confirmed"){
-    const token=decision.dataset.token||"";
-    const cancelLink=token?"https://arruda-barber.github.io/Arruda-Barbearia-/?cancel="+encodeURIComponent(token)+"#cancelar":"";
-    const parts=(decision.dataset.date||"").split("-");const dateFmt=parts.length===3?parts[2]+"/"+parts[1]+"/"+parts[0]:decision.dataset.date;
-    const msg="💈 *ARRUDA BARBER — HORÁRIO CONFIRMADO!*\\n\\nOlá, *"+decision.dataset.client+"*! Seu horário foi confirmado. ✅\\n\\n📅 *Data:* "+dateFmt+"\\n🕒 *Horário:* "+String(decision.dataset.time||"").slice(0,5)+"\\n💈 *Profissional:* "+barber+"\\n✂️ *Serviço:* "+decision.dataset.service+"\\n\\nSeu horário está reservado!\\n\\n⚠️ *POLÍTICA DE CANCELAMENTO:*\\n\\nCaso precise cancelar, pedimos que avise com pelo menos *30 minutos de antecedência*.\\n\\nCancelamentos realizados com menos de 30 minutos de antecedência ou ausência sem aviso poderão gerar uma *taxa de R$ 15,00*, referente ao horário reservado.\\n\\n"+(cancelLink?"🔗 *Para cancelar seu horário, acesse:*\\n"+cancelLink:"Para cancelar, entre em contato com a barbearia.")+"\\n\\nObrigado pela preferência! 🤝\\n\\n*Arruda Barber* 💈";
-    $("agendaMessage").textContent="Horário confirmado! Abrindo WhatsApp.";
-    const whatsappUrl="https://wa.me/"+clientPhone+"?text="+encodeURIComponent(msg);
-    if(whatsappWindow&&!whatsappWindow.closed){whatsappWindow.location.href=whatsappUrl;}else{window.location.href=whatsappUrl;}
-    await load();return;
-   }
-   $("agendaMessage").textContent="Horário recusado.";await load();
-  }catch(err){if(whatsappWindow&&!whatsappWindow.closed)whatsappWindow.close();$("agendaMessage").textContent=err.message;decision.disabled=false;}
+   $("agendaMessage").textContent=choice==="confirmed"?"Horário confirmado! O cliente receberá a notificação.":"Horário recusado.";
+   await load();
+  }catch(err){$("agendaMessage").textContent=err.message;decision.disabled=false;}
+
  }
 });
 if(pin){api().then(d=>{barber=d.barber;showAgenda();load();restoreSavedPush();startPolling();}).catch(()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";showLogin();});}else showLogin();
