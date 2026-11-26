@@ -51,6 +51,7 @@ const servicos = {
 
 const formulario = document.getElementById("formAgendamento");
 const campoNome = document.getElementById("nome");
+const campoWhatsapp = document.getElementById("whatsapp");
 const campoServico = document.getElementById("servico");
 const campoProfissional = document.getElementById("profissional");
 const campoData = document.getElementById("data");
@@ -68,7 +69,7 @@ const detalhesConfirmacao = document.getElementById("detalhesConfirmacao");
 const botaoEnviarWhatsAppReserva = document.getElementById("enviarWhatsAppReserva");
 let linkWhatsAppReserva = "";
 
-if (!formulario || !campoNome || !campoServico || !campoProfissional || !campoData || !campoHorario || !botao) {
+if (!formulario || !campoNome || !campoWhatsapp || !campoServico || !campoProfissional || !campoData || !campoHorario || !botao) {
   console.error("Campos obrigatórios do agendamento não encontrados.");
   throw new Error("Formulário de agendamento incompleto.");
 }
@@ -344,6 +345,13 @@ formulario.addEventListener("submit", async function(evento) {
   if (botao.disabled) return;
 
   const nome = campoNome.value.trim();
+  let telefoneCliente = campoWhatsapp.value.replace(/\D/g, "");
+  if (telefoneCliente.length === 10 || telefoneCliente.length === 11) telefoneCliente = "55" + telefoneCliente;
+  if (!/^55[1-9][0-9][0-9]{8,9}$/.test(telefoneCliente)) {
+    alert("Informe um WhatsApp válido com DDD. Exemplo: (55) 99999-9999.");
+    campoWhatsapp.focus();
+    return;
+  }
   const servico = campoServico.value;
   const profissional = campoProfissional.value;
   const data = campoData.value;
@@ -415,7 +423,8 @@ formulario.addEventListener("submit", async function(evento) {
       p_service: nomeServicoAgendamento(servico),
       p_barber: profissional,
       p_date: data,
-      p_start_time: formatarHora(inicioMinutos)
+      p_start_time: formatarHora(inicioMinutos),
+      p_client_phone: telefoneCliente
     });
 
     if (resposta.error) throw resposta.error;
