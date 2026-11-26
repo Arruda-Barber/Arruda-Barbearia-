@@ -66,7 +66,7 @@ const campoCodigoCancelamento = document.getElementById("codigoCancelamento");
 const botaoCancelar = document.getElementById("botaoCancelar");
 const confirmacaoReserva = document.getElementById("confirmacaoReserva");
 const detalhesConfirmacao = document.getElementById("detalhesConfirmacao");
-const botaoEnviarWhatsAppReserva = document.getElementById("enviarWhatsAppReserva");
+const botaoEnviarWhatsAppReserva = document.getElementById("enviarWhatsAppReserva");\nconst botaoAdicionarAgendaReserva = document.getElementById("adicionarAgendaReserva");\nlet dadosReservaCalendario = null;
 let linkWhatsAppReserva = "";
 
 if (!formulario || !campoNome || !campoWhatsapp || !campoServico || !campoProfissional || !campoData || !campoHorario || !botao) {
@@ -510,7 +510,7 @@ formulario.addEventListener("submit", async function(evento) {
   const telefoneProfissional = profissionais[profissional];
   const linkWhatsApp = "https://wa.me/" + telefoneProfissional + "?text=" + encodeURIComponent(mensagem);
 
-  linkWhatsAppReserva = linkWhatsApp;
+  linkWhatsAppReserva = linkWhatsApp;\n  dadosReservaCalendario = { data, horario, duracao: duracaoTotalServico(servico), profissional, servico: nomeServicoAgendamento(servico), valor: precoTotalServico(servico).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) };
 
   if (detalhesConfirmacao) {
     detalhesConfirmacao.textContent =
