@@ -1,4 +1,4 @@
-const CACHE_NAME = "arruda-barber-android-v24";
+const CACHE_NAME = "arruda-barber-android-v25";
 
 const ARQUIVOS = [
   "./",
@@ -62,11 +62,15 @@ self.addEventListener("push", event => {
 self.addEventListener("notificationclick", event => {
   event.notification.close();
   const target = event.notification.data && event.notification.data.url || "./";
-  event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+  event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(async list => {
     for (const client of list) {
-      if ("focus" in client) return client.focus();
+      if ("focus" in client) {
+        const focused = await client.focus();
+        if ("navigate" in focused) await focused.navigate(new URL(target, self.location.href).href);
+        return focused;
+      }
     }
-    return clients.openWindow(target);
+    return clients.openWindow(new URL(target, self.location.href).href);
   }));
 });
 
