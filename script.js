@@ -8,7 +8,7 @@ if (!window.supabase || typeof window.supabase.createClient !== "function") {
 }
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const VAPID_PUBLIC_KEY = "BMNeInES4l5-De3Hz49uz8os9owNcwB8S_Ii_Y8Fd_4AEwXim-xOnNjEreFSXMbdSkk0t7PU-7zotXAIPmDLqO0";
+const VAPID_PUBLIC_KEY = "BAcudFBcLVAWw4m04KoijgcdeQEP7J0oAuYL4B531z3s1-9KTWuaKYO9AcqhGoEMDvh5n8dHYy_RRLLHnM-xoMY";
 function vapidBytes(value){const pad="=".repeat((4-value.length%4)%4);const raw=atob((value+pad).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(raw,c=>c.charCodeAt(0));}
 const botaoNotificacoesCliente=document.getElementById("ativarNotificacoesCliente");
 if(botaoNotificacoesCliente){
@@ -20,6 +20,7 @@ if(botaoNotificacoesCliente){
    if(permission!=="granted")throw new Error("Permissão de notificação não concedida.");
    const reg=await navigator.serviceWorker.register("./sw.js");await navigator.serviceWorker.ready;
    let sub=await reg.pushManager.getSubscription();
+   if(sub){const oldKey=sub.options.applicationServerKey;if(!oldKey||!oldKey.every((v,i)=>v===vapidBytes(VAPID_PUBLIC_KEY)[i])){await sub.unsubscribe();sub=null;}}
    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(VAPID_PUBLIC_KEY)});
    localStorage.setItem("arruda_client_push_subscription",JSON.stringify(sub.toJSON()));
    botaoNotificacoesCliente.textContent="✓ AVISOS ATIVADOS";
