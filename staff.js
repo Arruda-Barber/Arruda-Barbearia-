@@ -28,7 +28,7 @@ function render(rows){
  el.innerHTML=rows.map(x=>{
   const pending=x.status==="pending";
   const actions=pending
-   ? '<div class="actions"><button class="primary" data-decision="confirmed" data-id="'+esc(x.id)+'" data-token="'+esc(x.cancellation_token)+'" data-client="'+esc(x.client_name)+'" data-service="'+esc(x.service)+'" data-date="'+esc(x.booking_date)+'" data-time="'+esc(x.start_time)+'">Confirmar horário</button><button class="reject" data-decision="cancelled" data-id="'+esc(x.id)+'">Recusar</button></div>'
+   ? '<div class="actions"><button class="primary" data-decision="confirmed" data-id="'+esc(x.id)+'" data-token="'+esc(x.cancellation_token)+'" data-client="'+esc(x.client_name)+'" data-phone="'+esc(x.client_phone||"")+'" data-service="'+esc(x.service)+'" data-date="'+esc(x.booking_date)+'" data-time="'+esc(x.start_time)+'">Confirmar horário</button><button class="reject" data-decision="cancelled" data-id="'+esc(x.id)+'">Recusar</button></div>'
    : '<div class="actions"><button class="primary" data-finish="'+esc(x.id)+'">Registrar atendimento</button><button class="reject" data-noshow="'+esc(x.id)+'">Cliente faltou</button></div>';
   return '<article class="booking '+(pending?"is-pending":"")+'"><div class="booking-top"><span class="status '+(pending?"pending":"confirmed")+'">'+(pending?"AGUARDANDO CONFIRMAÇÃO":"CONFIRMADO")+'</span><time>'+esc(fmtTime(x.start_time))+'</time></div><h2>'+esc(x.client_name)+'</h2><p>'+esc(x.service)+'</p><p class="booking-date">'+esc(fmtDate(x.booking_date))+'</p>'+actions+'</article>';
  }).join("");
@@ -123,12 +123,15 @@ $("bookingList").addEventListener("click",async e=>{
  if(decision){
   const choice=decision.dataset.decision;
   if(!confirm(choice==="confirmed"?"Deseja confirmar este horário?":"Deseja recusar este horário?"))return;
-  let clientPhone="";
+  let clientPhone=decision.dataset.phone||"";
   if(choice==="confirmed"){
-   clientPhone=prompt("Digite o WhatsApp do cliente com DDD (somente números ou com símbolos):");
-   if(clientPhone===null)return;
+   if(!clientPhone){
+    clientPhone=prompt("Este agendamento antigo não tem WhatsApp salvo. Digite o número com DDD:");
+    if(clientPhone===null)return;
+   }
    clientPhone=clientPhone.replace(/\D/g,"");
-   if(clientPhone.length<10||clientPhone.length>13){$("agendaMessage").textContent="Telefone inválido. Digite o WhatsApp com DDD.";return;}
+   if(clientPhone.length===10||clientPhone.length===11)clientPhone="55"+clientPhone;
+   if(!/^55[1-9][0-9][0-9]{8,9}$/.test(clientPhone)){$("agendaMessage").textContent="WhatsApp inválido. Confira o DDD e o número.";return;}
   }
   let whatsappWindow=null;
   if(choice==="confirmed"){whatsappWindow=window.open("about:blank","_blank");}
