@@ -428,6 +428,7 @@ formulario.addEventListener("submit", async function(evento) {
           headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
           body:JSON.stringify({action:"subscribe-client",bookingId:reserva.booking_id,subscription:JSON.parse(inscricaoCliente)})
         });
+        if(!vinculoCliente.ok) console.warn("Push do cliente não vinculado:",await vinculoCliente.text());
       }catch(erro){console.warn("Inscrição do cliente não vinculada:",erro);}
     }
     // Dispara o alerta do profissional após o banco confirmar a reserva.
