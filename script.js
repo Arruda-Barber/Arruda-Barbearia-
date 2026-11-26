@@ -20,7 +20,7 @@ if(botaoNotificacoesCliente){
    if(permission!=="granted")throw new Error("Permissão de notificação não concedida.");
    const reg=await navigator.serviceWorker.register("./sw.js");await navigator.serviceWorker.ready;
    let sub=await reg.pushManager.getSubscription();
-   if(sub){const oldKey=sub.options.applicationServerKey?new Uint8Array(sub.options.applicationServerKey):null;const newKey=vapidBytes(VAPID_PUBLIC_KEY);if(!oldKey||oldKey.length!==newKey.length||!oldKey.every((v,i)=>v===newKey[i]){await sub.unsubscribe();sub=null;}}
+   if(sub){const oldKey=sub.options.applicationServerKey?new Uint8Array(sub.options.applicationServerKey):null;const newKey=vapidBytes(VAPID_PUBLIC_KEY);if(!oldKey||oldKey.length!==newKey.length||!oldKey.every((v,i)=>v===newKey[i])){await sub.unsubscribe();sub=null;}}
    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(VAPID_PUBLIC_KEY)});
    localStorage.setItem("arruda_client_push_subscription",JSON.stringify(sub.toJSON()));
    botaoNotificacoesCliente.textContent="✓ AVISOS ATIVADOS";
