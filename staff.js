@@ -130,6 +130,8 @@ $("bookingList").addEventListener("click",async e=>{
    clientPhone=clientPhone.replace(/\D/g,"");
    if(clientPhone.length<10||clientPhone.length>13){$("agendaMessage").textContent="Telefone inválido. Digite o WhatsApp com DDD.";return;}
   }
+  let whatsappWindow=null;
+  if(choice==="confirmed"){whatsappWindow=window.open("about:blank","_blank");}
   decision.disabled=true;
   try{
    await api("decide",{bookingId:decision.dataset.id,decision:choice});
@@ -139,10 +141,12 @@ $("bookingList").addEventListener("click",async e=>{
     const parts=(decision.dataset.date||"").split("-");const dateFmt=parts.length===3?parts[2]+"/"+parts[1]+"/"+parts[0]:decision.dataset.date;
     const msg="💈 *ARRUDA BARBER — HORÁRIO CONFIRMADO!*\\n\\nOlá, *"+decision.dataset.client+"*! Seu horário foi confirmado. ✅\\n\\n📅 *Data:* "+dateFmt+"\\n🕒 *Horário:* "+String(decision.dataset.time||"").slice(0,5)+"\\n💈 *Profissional:* "+barber+"\\n✂️ *Serviço:* "+decision.dataset.service+"\\n\\nSeu horário está reservado!\\n\\n⚠️ *POLÍTICA DE CANCELAMENTO:*\\n\\nCaso precise cancelar, pedimos que avise com pelo menos *30 minutos de antecedência*.\\n\\nCancelamentos realizados com menos de 30 minutos de antecedência ou ausência sem aviso poderão gerar uma *taxa de R$ 15,00*, referente ao horário reservado.\\n\\n"+(cancelLink?"🔗 *Para cancelar seu horário, acesse:*\\n"+cancelLink:"Para cancelar, entre em contato com a barbearia.")+"\\n\\nObrigado pela preferência! 🤝\\n\\n*Arruda Barber* 💈";
     $("agendaMessage").textContent="Horário confirmado! Abrindo WhatsApp.";
-    await load();window.location.assign("https://wa.me/"+clientPhone+"?text="+encodeURIComponent(msg));return;
+    const whatsappUrl="https://wa.me/"+clientPhone+"?text="+encodeURIComponent(msg);
+    if(whatsappWindow&&!whatsappWindow.closed){whatsappWindow.location.href=whatsappUrl;}else{window.location.href=whatsappUrl;}
+    await load();return;
    }
    $("agendaMessage").textContent="Horário recusado.";await load();
-  }catch(err){$("agendaMessage").textContent=err.message;decision.disabled=false;}
+  }catch(err){if(whatsappWindow&&!whatsappWindow.closed)whatsappWindow.close();$("agendaMessage").textContent=err.message;decision.disabled=false;}
  }
 });
 if(pin){api().then(d=>{barber=d.barber;showAgenda();load();restoreSavedPush();startPolling();}).catch(()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";showLogin();});}else showLogin();
