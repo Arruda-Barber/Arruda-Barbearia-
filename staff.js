@@ -28,7 +28,7 @@ function render(rows){
  el.innerHTML=rows.map(x=>{
   const pending=x.status==="pending";
   const actions=pending
-   ? '<div class="actions"><button class="primary" data-decision="confirmed" data-id="'+esc(x.id)+'">Confirmar horário</button><button class="reject" data-decision="cancelled" data-id="'+esc(x.id)+'">Recusar</button></div>'
+   ? '<div class="actions"><button class="primary" data-decision="confirmed" data-id="'+esc(x.id)+'" data-token="'+esc(x.cancellation_token)+'" data-client="'+esc(x.client_name)+'" data-service="'+esc(x.service)+'" data-date="'+esc(x.booking_date)+'" data-time="'+esc(x.start_time)+'">Confirmar horário</button><button class="reject" data-decision="cancelled" data-id="'+esc(x.id)+'">Recusar</button></div>'
    : '<div class="actions"><button class="primary" data-finish="'+esc(x.id)+'">Registrar atendimento</button><button class="reject" data-noshow="'+esc(x.id)+'">Cliente faltou</button></div>';
   return '<article class="booking '+(pending?"is-pending":"")+'"><div class="booking-top"><span class="status '+(pending?"pending":"confirmed")+'">'+(pending?"AGUARDANDO CONFIRMAÇÃO":"CONFIRMADO")+'</span><time>'+esc(fmtTime(x.start_time))+'</time></div><h2>'+esc(x.client_name)+'</h2><p>'+esc(x.service)+'</p><p class="booking-date">'+esc(fmtDate(x.booking_date))+'</p>'+actions+'</article>';
  }).join("");
@@ -123,9 +123,26 @@ $("bookingList").addEventListener("click",async e=>{
  if(decision){
   const choice=decision.dataset.decision;
   if(!confirm(choice==="confirmed"?"Deseja confirmar este horário?":"Deseja recusar este horário?"))return;
+  let clientPhone="";
+  if(choice==="confirmed"){
+   clientPhone=prompt("Digite o WhatsApp do cliente com DDD (somente números ou com símbolos):");
+   if(clientPhone===null)return;
+   clientPhone=clientPhone.replace(/\\D/g,"");
+   if(clientPhone.length<10||clientPhone.length>13){$("agendaMessage").textContent="Telefone inválido. Digite o WhatsApp com DDD.";return;}
+  }
   decision.disabled=true;
-  try{await api("decide",{bookingId:decision.dataset.id,decision:choice});$("agendaMessage").textContent=choice==="confirmed"?"Horário confirmado!":"Horário recusado.";await load();}
-  catch(err){$("agendaMessage").textContent=err.message;decision.disabled=false;}
+  try{
+   await api("decide",{bookingId:decision.dataset.id,decision:choice});
+   if(choice==="confirmed"){
+    const token=decision.dataset.token||"";
+    const cancelLink=token?"https://arruda-barber.github.io/Arruda-Barbearia-/?cancel="+encodeURIComponent(token)+"#cancelar":"";
+    const parts=(decision.dataset.date||"").split("-");const dateFmt=parts.length===3?parts[2]+"/"+parts[1]+"/"+parts[0]:decision.dataset.date;
+    const msg="💈 *ARRUDA BARBER — HORÁRIO CONFIRMADO!*\\n\\nOlá, *"+decision.dataset.client+"*! Seu horário foi confirmado. ✅\\n\\n📅 *Data:* "+dateFmt+"\\n🕒 *Horário:* "+String(decision.dataset.time||"").slice(0,5)+"\\n💈 *Profissional:* "+barber+"\\n✂️ *Serviço:* "+decision.dataset.service+"\\n\\nSeu horário está reservado!\\n\\n⚠️ *POLÍTICA DE CANCELAMENTO:*\\n\\nCaso precise cancelar, pedimos que avise com pelo menos *30 minutos de antecedência*.\\n\\nCancelamentos realizados com menos de 30 minutos de antecedência ou ausência sem aviso poderão gerar uma *taxa de R$ 15,00*, referente ao horário reservado.\\n\\n"+(cancelLink?"🔗 *Para cancelar seu horário, acesse:*\\n"+cancelLink:"Para cancelar, entre em contato com a barbearia.")+"\\n\\nObrigado pela preferência! 🤝\\n\\n*Arruda Barber* 💈";
+    $("agendaMessage").textContent="Horário confirmado! Abrindo WhatsApp.";
+    await load();window.location.assign("https://wa.me/"+clientPhone+"?text="+encodeURIComponent(msg));return;
+   }
+   $("agendaMessage").textContent="Horário recusado.";await load();
+  }catch(err){$("agendaMessage").textContent=err.message;decision.disabled=false;}
  }
 });
 if(pin){api().then(d=>{barber=d.barber;showAgenda();load();restoreSavedPush();startPolling();}).catch(()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";showLogin();});}else showLogin();
