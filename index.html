@@ -106,7 +106,11 @@
       <form id="formAgendamento">
 
         <label for="nome">Seu nome</label>
-        <input id="nome" type="text" placeholder="Digite seu nome" required>
+        <input id="nome" type="text" placeholder="Digite seu nome" maxlength="80" autocomplete="name" required>
+
+        <label for="whatsapp">Seu WhatsApp com DDD</label>
+        <input id="whatsapp" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(55) 99999-9999" required>
+        <small>Usaremos esse número somente para enviar a confirmação do seu horário.</small>
 
         <label for="servico">Serviço</label>
         <select id="servico" required>
@@ -196,7 +200,7 @@
   </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2';"></script>
-<script src="script.js?v=27"></script>
+<script src="script.js?v=28"></script>
 
   <script>
     if ("serviceWorker" in navigator) {
