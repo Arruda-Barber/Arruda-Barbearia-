@@ -431,11 +431,15 @@ formulario.addEventListener("submit", async function(evento) {
     }
     // Dispara o alerta do profissional após o banco confirmar a reserva.
     if(reserva && reserva.booking_id){
-      fetch("https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api",{
-        method:"POST",mode:"cors",cache:"no-store",
-        headers:{"Content-Type":"application/json","apikey":"sb_publishable_avmpjV37mxZihhOW_Ov8VQ_YbVWyae4","Authorization":"Bearer sb_publishable_avmpjV37mxZihhOW_Ov8VQ_YbVWyae4"},
-        body:JSON.stringify({action:"notify-booking",bookingId:reserva.booking_id})
-      }).catch(function(erro){console.warn("Aviso push ao profissional não enviado:",erro);});
+      try {
+        const pushResposta = await fetch("https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api",{
+          method:"POST",mode:"cors",cache:"no-store",
+          headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
+          body:JSON.stringify({action:"notify-booking",bookingId:reserva.booking_id})
+        });
+        const pushResultado = await pushResposta.json().catch(()=>({}));
+        if(!pushResposta.ok || pushResultado.sent===0) console.warn("Push ao profissional não confirmado:",pushResultado);
+      } catch(erro){console.warn("Aviso push ao profissional não enviado:",erro);}
     }
   } catch (erro) {
     console.error("Erro ao reservar:", erro);
