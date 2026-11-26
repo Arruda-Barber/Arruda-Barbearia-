@@ -424,43 +424,46 @@ formulario.addEventListener("submit", async function(evento) {
 
     if (resposta.error) throw resposta.error;
     reserva = resposta.data;
-    // Durante a ação de reservar, tenta habilitar o Push caso o cliente ainda não tenha inscrição.
-    let inscricaoCliente=localStorage.getItem("arruda_client_push_subscription");
-    if(!inscricaoCliente && reserva && reserva.booking_id && ("Notification" in window) && Notification.permission!=="denied" && ("serviceWorker" in navigator) && ("PushManager" in window)){
-      try{
-        const permissao=Notification.permission==="granted" ? "granted" : await Notification.requestPermission();
-        if(permissao==="granted"){
-          const reg=await navigator.serviceWorker.register("./sw.js");
-          await navigator.serviceWorker.ready;
-          let sub=await reg.pushManager.getSubscription();
-          if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(VAPID_PUBLIC_KEY)});
-          inscricaoCliente=JSON.stringify(sub.toJSON());
-          localStorage.setItem("arruda_client_push_subscription",inscricaoCliente);
-        }
-      }catch(pushErro){console.warn("Push do cliente não ativado durante agendamento:",pushErro);}
-    }
-    if(inscricaoCliente && reserva && reserva.booking_id){
-      try{
-        const vinculoCliente=await fetch("https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api",{
-          method:"POST",mode:"cors",cache:"no-store",
-          headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
-          body:JSON.stringify({action:"subscribe-client",bookingId:reserva.booking_id,subscription:JSON.parse(inscricaoCliente)})
-        });
-        if(!vinculoCliente.ok) console.warn("Push do cliente não vinculado:",await vinculoCliente.text());
-      }catch(erro){console.warn("Inscrição do cliente não vinculada:",erro);}
-    }
-    // Dispara o alerta do profissional após o banco confirmar a reserva.
-    if(reserva && reserva.booking_id){
-      try {
-        const pushResposta = await fetch("https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api",{
-          method:"POST",mode:"cors",cache:"no-store",
-          headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
-          body:JSON.stringify({action:"notify-booking",bookingId:reserva.booking_id})
-        });
-        const pushResultado = await pushResposta.json().catch(()=>({}));
-        if(!pushResposta.ok || pushResultado.sent===0) console.warn("Push ao profissional não confirmado:",pushResultado);
-      } catch(erro){console.warn("Aviso push ao profissional não enviado:",erro);}
-    }
+    // Executa notificações sem bloquear a confirmação nem o botão do WhatsApp.
+    (async function(){
+      // Durante a ação de reservar, tenta habilitar o Push caso o cliente ainda não tenha inscrição.
+      let inscricaoCliente=localStorage.getItem("arruda_client_push_subscription");
+      if(!inscricaoCliente && reserva && reserva.booking_id && ("Notification" in window) && Notification.permission!=="denied" && ("serviceWorker" in navigator) && ("PushManager" in window)){
+        try{
+          const permissao=Notification.permission==="granted" ? "granted" : await Notification.requestPermission();
+          if(permissao==="granted"){
+            const reg=await navigator.serviceWorker.register("./sw.js");
+            await navigator.serviceWorker.ready;
+            let sub=await reg.pushManager.getSubscription();
+            if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(VAPID_PUBLIC_KEY)});
+            inscricaoCliente=JSON.stringify(sub.toJSON());
+            localStorage.setItem("arruda_client_push_subscription",inscricaoCliente);
+          }
+        }catch(pushErro){console.warn("Push do cliente não ativado durante agendamento:",pushErro);}
+      }
+      if(inscricaoCliente && reserva && reserva.booking_id){
+        try{
+          const vinculoCliente=await fetch("https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api",{
+            method:"POST",mode:"cors",cache:"no-store",
+            headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
+            body:JSON.stringify({action:"subscribe-client",bookingId:reserva.booking_id,subscription:JSON.parse(inscricaoCliente)})
+          });
+          if(!vinculoCliente.ok) console.warn("Push do cliente não vinculado:",await vinculoCliente.text());
+        }catch(erro){console.warn("Inscrição do cliente não vinculada:",erro);}
+      }
+      // Dispara o alerta do profissional após o banco confirmar a reserva.
+      if(reserva && reserva.booking_id){
+        try {
+          const pushResposta = await fetch("https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api",{
+            method:"POST",mode:"cors",cache:"no-store",
+            headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
+            body:JSON.stringify({action:"notify-booking",bookingId:reserva.booking_id})
+          });
+          const pushResultado = await pushResposta.json().catch(()=>({}));
+          if(!pushResposta.ok || pushResultado.sent===0) console.warn("Push ao profissional não confirmado:",pushResultado);
+        } catch(erro){console.warn("Aviso push ao profissional não enviado:",erro);}
+      }
+    })().catch(function(e){console.warn('Falha nas notificações em segundo plano:',e);});
   } catch (erro) {
     console.error("Erro ao reservar:", erro);
 
