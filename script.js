@@ -429,7 +429,21 @@ formulario.addEventListener("submit", async function(evento) {
 
     if (resposta.error) throw resposta.error;
     reserva = resposta.data;
-    const inscricaoCliente=localStorage.getItem("arruda_client_push_subscription");
+    // Durante a ação de reservar, tenta habilitar o Push caso o cliente ainda não tenha inscrição.
+    let inscricaoCliente=localStorage.getItem("arruda_client_push_subscription");
+    if(!inscricaoCliente && reserva && reserva.booking_id && ("Notification" in window) && Notification.permission!=="denied" && ("serviceWorker" in navigator) && ("PushManager" in window)){
+      try{
+        const permissao=Notification.permission==="granted" ? "granted" : await Notification.requestPermission();
+        if(permissao==="granted"){
+          const reg=await navigator.serviceWorker.register("./sw.js");
+          await navigator.serviceWorker.ready;
+          let sub=await reg.pushManager.getSubscription();
+          if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(VAPID_PUBLIC_KEY)});
+          inscricaoCliente=JSON.stringify(sub.toJSON());
+          localStorage.setItem("arruda_client_push_subscription",inscricaoCliente);
+        }
+      }catch(pushErro){console.warn("Push do cliente não ativado durante agendamento:",pushErro);}
+    }
     if(inscricaoCliente && reserva && reserva.booking_id){
       try{
         const vinculoCliente=await fetch("https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api",{
