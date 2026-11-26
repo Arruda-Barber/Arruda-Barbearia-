@@ -192,10 +192,18 @@ async function atualizarHorarios() {
   campoHorario.innerHTML = '<option value="">Carregando horários...</option>';
 
   try {
-    const resposta = await db.rpc("get_busy_intervals_v2", {
+    let resposta = await db.rpc("get_busy_intervals_v2", {
       p_date: data,
       p_barber: profissional
     });
+    // Fallback para a função anterior, caso a consulta v2 falhe por cache/schema da API.
+    if (resposta.error) {
+      console.warn("Consulta v2 falhou; tentando função compatível:", resposta.error);
+      resposta = await db.rpc("get_busy_intervals", {
+        p_date: data,
+        p_barber: profissional
+      });
+    }
 
     if (versaoAtual !== versaoConsultaHorarios) return;
     if (resposta.error) throw resposta.error;
