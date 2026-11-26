@@ -26,7 +26,7 @@ function render(rows){
  const el=$("bookingList");
  if(!rows.length){el.innerHTML='<div class="empty">Você não tem horários futuros pendentes ou confirmados.</div>';return;}
  el.innerHTML=rows.map(x=>{
-  const pending=x.status==="pending";
+  const pending=false;
   const actions=pending
    ? '<div class="actions"><button class="primary" data-decision="confirmed" data-id="'+esc(x.id)+'" data-token="'+esc(x.cancellation_token)+'" data-client="'+esc(x.client_name)+'" data-phone="'+esc(x.client_phone||"")+'" data-service="'+esc(x.service)+'" data-date="'+esc(x.booking_date)+'" data-time="'+esc(x.start_time)+'">Confirmar horário</button><button class="reject" data-decision="cancelled" data-id="'+esc(x.id)+'">Recusar</button></div>'
    : '<div class="actions"><button class="primary" data-finish="'+esc(x.id)+'">Registrar atendimento</button><button class="reject" data-noshow="'+esc(x.id)+'">Cliente faltou</button></div>';
