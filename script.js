@@ -502,7 +502,7 @@ formulario.addEventListener("submit", async function(evento) {
     "Duração: " + duracaoTotalServico(servico) + " minutos\n" +
     "Data: " + dataFormatada + "\n" +
     "Horário: " + horario + "\n\n" +
-    "Seu horário está aguardando a confirmação do profissional.\n\n" +
+    "Seu horário já está reservado!\n\n" +
     (linkCancelamento
       ? "Quero cancelar meu horário: " + linkCancelamento
       : "Para cancelar, entre em contato com a barbearia.");
@@ -531,7 +531,7 @@ formulario.addEventListener("submit", async function(evento) {
   botao.textContent = "HORÁRIO RESERVADO";
 
   if (confirmacaoReserva) confirmacaoReserva.scrollIntoView({ behavior: "smooth", block: "center" });
-  alert("Agendamento realizado! Vamos abrir o WhatsApp do profissional para enviar a confirmação.");
+  alert("Agendamento realizado! Seu horário está reservado. Vamos abrir o WhatsApp do profissional para avisar.");
   window.location.href = linkWhatsAppReserva;
 });
 
