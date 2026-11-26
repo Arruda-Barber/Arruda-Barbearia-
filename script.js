@@ -345,7 +345,8 @@ formulario.addEventListener("submit", async function(evento) {
   if (botao.disabled) return;
 
   const nome = campoNome.value.trim();
-  let telefoneCliente = "";\n  const servico = campoServico.value;
+  let telefoneCliente = "";
+  const servico = campoServico.value;
   const profissional = campoProfissional.value;
   const data = campoData.value;
   const horario = campoHorario.value;
