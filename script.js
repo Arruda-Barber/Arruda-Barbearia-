@@ -423,7 +423,7 @@ formulario.addEventListener("submit", async function(evento) {
     const inscricaoCliente=localStorage.getItem("arruda_client_push_subscription");
     if(inscricaoCliente && reserva && reserva.booking_id){
       try{
-        await fetch("https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api",{
+        const vinculoCliente=await fetch("https://kduaktloheptwyzynppf.supabase.co/functions/v1/barber-portal-api",{
           method:"POST",mode:"cors",cache:"no-store",
           headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
           body:JSON.stringify({action:"subscribe-client",bookingId:reserva.booking_id,subscription:JSON.parse(inscricaoCliente)})
