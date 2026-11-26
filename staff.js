@@ -37,7 +37,7 @@ async function load(silent=false){if(!silent)$("agendaMessage").textContent="Car
 $("staffLogin").addEventListener("submit",async e=>{e.preventDefault();const value=$("staffPin").value.trim();if(!/^\d{6}$/.test(value))return;$("loginMessage").textContent="Verificando acesso...";pin=value;try{const d=await api();sessionStorage.setItem("arruda_staff_pin",pin);barber=d.barber;showAgenda();await load();await restoreSavedPush();startPolling();}catch(err){pin="";$("loginMessage").textContent=err.message;}});
 $("logout").addEventListener("click",()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";barber="";$("staffPin").value="";showLogin();$("loginMessage").textContent="Você saiu da sua agenda.";});
 $("refresh").addEventListener("click",load);
-const VAPID_PUBLIC_KEY="BMNeInES4l5-De3Hz49uz8os9owNcwB8S_Ii_Y8Fd_4AEwXim-xOnNjEreFSXMbdSkk0t7PU-7zotXAIPmDLqO0";
+const VAPID_PUBLIC_KEY="BAcudFBcLVAWw4m04KoijgcdeQEP7J0oAuYL4B531z3s1-9KTWuaKYO9AcqhGoEMDvh5n8dHYy_RRLLHnM-xoMY";
 function base64UrlToBytes(value){const padding="=".repeat((4-value.length%4)%4);const raw=atob((value+padding).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(raw,c=>c.charCodeAt(0));}
 const testButton=$("testNotifications");
 if(testButton){
@@ -59,7 +59,8 @@ async function restoreSavedPush(){
   if(Notification.permission!=="granted"){notifyButton.textContent="🔔 Ativar notificações de novos agendamentos";return;}
   const registration=await navigator.serviceWorker.register("./sw.js");
   await navigator.serviceWorker.ready;
-  const subscription=await registration.pushManager.getSubscription();
+  let subscription=await registration.pushManager.getSubscription();
+  if(subscription){const oldKey=subscription.options.applicationServerKey;if(!oldKey||!oldKey.every((v,i)=>v===base64UrlToBytes(VAPID_PUBLIC_KEY)[i])){await subscription.unsubscribe();subscription=null;}}
   if(subscription){
    await api("subscribe-staff",{subscription:subscription.toJSON()});
    notifyButton.textContent="✓ Notificações ativadas neste aparelho";
@@ -81,6 +82,7 @@ if(notifyButton){
    const registration=await navigator.serviceWorker.register("./sw.js");
    await navigator.serviceWorker.ready;
    let subscription=await registration.pushManager.getSubscription();
+   if(subscription){const oldKey=subscription.options.applicationServerKey;if(!oldKey||!oldKey.every((v,i)=>v===base64UrlToBytes(VAPID_PUBLIC_KEY)[i])){await subscription.unsubscribe();subscription=null;}}
    if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:base64UrlToBytes(VAPID_PUBLIC_KEY)});
    await api("subscribe-staff",{subscription:subscription.toJSON()});
    notifyButton.textContent="Notificações ativadas ✓";
