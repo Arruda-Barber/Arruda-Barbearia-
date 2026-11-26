@@ -127,7 +127,7 @@ $("bookingList").addEventListener("click",async e=>{
   if(choice==="confirmed"){
    clientPhone=prompt("Digite o WhatsApp do cliente com DDD (somente números ou com símbolos):");
    if(clientPhone===null)return;
-   clientPhone=clientPhone.replace(/\\D/g,"");
+   clientPhone=clientPhone.replace(/\D/g,"");
    if(clientPhone.length<10||clientPhone.length>13){$("agendaMessage").textContent="Telefone inválido. Digite o WhatsApp com DDD.";return;}
   }
   decision.disabled=true;
