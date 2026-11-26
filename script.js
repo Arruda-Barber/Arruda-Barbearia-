@@ -326,7 +326,7 @@ if (botaoCancelar && campoCodigoCancelamento) {
         "Serviço: " + (cancelado.service || "") + "\\n" +
         "Data: " + dataFormatada + "\\n" +
         "Horário: " + String(cancelado.start_time).slice(0, 5) + "\\n\\n" +
-        "Cancelamento confirmado pelo site. Obrigado!";
+        (cancelado.cancel_fee_applies ? "Cancelamento realizado com menos de 30 minutos de antecedência. A política da barbearia prevê taxa de R$ 15,00.\\n\\n" : "Cancelamento realizado com pelo menos 30 minutos de antecedência, sem taxa.\\n\\n") + "Cancelamento confirmado pelo site. Obrigado!";
 
       const linkWhatsApp = "https://wa.me/" + telefone + "?text=" + encodeURIComponent(mensagem);
       alert("Agendamento cancelado! Vamos abrir o WhatsApp do profissional para avisar.");
