@@ -60,7 +60,7 @@ async function restoreSavedPush(){
   const registration=await navigator.serviceWorker.register("./sw.js");
   await navigator.serviceWorker.ready;
   let subscription=await registration.pushManager.getSubscription();
-  if(subscription){const oldKey=subscription.options.applicationServerKey?new Uint8Array(subscription.options.applicationServerKey):null;const newKey=base64UrlToBytes(VAPID_PUBLIC_KEY);if(!oldKey||oldKey.length!==newKey.length||!oldKey.every((v,i)=>v===newKey[i]){await subscription.unsubscribe();subscription=null;}}
+  if(subscription){const oldKey=subscription.options.applicationServerKey?new Uint8Array(subscription.options.applicationServerKey):null;const newKey=base64UrlToBytes(VAPID_PUBLIC_KEY);if(!oldKey||oldKey.length!==newKey.length||!oldKey.every((v,i)=>v===newKey[i])){await subscription.unsubscribe();subscription=null;}}
   if(subscription){
    await api("subscribe-staff",{subscription:subscription.toJSON()});
    notifyButton.textContent="✓ Notificações ativadas neste aparelho";
@@ -82,7 +82,7 @@ if(notifyButton){
    const registration=await navigator.serviceWorker.register("./sw.js");
    await navigator.serviceWorker.ready;
    let subscription=await registration.pushManager.getSubscription();
-   if(subscription){const oldKey=subscription.options.applicationServerKey;if(!oldKey||!oldKey.every((v,i)=>v===base64UrlToBytes(VAPID_PUBLIC_KEY)[i])){await subscription.unsubscribe();subscription=null;}}
+   if(subscription){const oldKey=subscription.options.applicationServerKey;const newKey=base64UrlToBytes(VAPID_PUBLIC_KEY);if(!oldKey||oldKey.length!==newKey.length||!oldKey.every((v,i)=>v===newKey[i])){await subscription.unsubscribe();subscription=null;}}
    if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:base64UrlToBytes(VAPID_PUBLIC_KEY)});
    await api("subscribe-staff",{subscription:subscription.toJSON()});
    notifyButton.textContent="Notificações ativadas ✓";
