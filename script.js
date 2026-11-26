@@ -523,8 +523,12 @@ formulario.addEventListener("submit", async function(evento) {
   botao.disabled = true;
   botao.textContent = "HORÁRIO RESERVADO";
 
-  // Abre o WhatsApp automaticamente após a confirmação efetiva no banco.
-  window.location.assign(linkWhatsApp);
+  // Exibe o botão para o cliente abrir o WhatsApp após a reserva; evita bloqueio de redirecionamento automático em celulares.
+  if (botaoEnviarWhatsAppReserva) {
+    botaoEnviarWhatsAppReserva.textContent = "ENVIAR AGENDAMENTO PELO WHATSAPP";
+    botaoEnviarWhatsAppReserva.hidden = false;
+  }
+  if (confirmacaoReserva) confirmacaoReserva.scrollIntoView({ behavior: "smooth", block: "center" });
 });
 
 console.log("Arruda Barber: sistema de agendamento carregado.");
