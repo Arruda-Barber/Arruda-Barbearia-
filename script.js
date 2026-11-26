@@ -521,6 +521,9 @@ formulario.addEventListener("submit", async function(evento) {
 
   if (confirmacaoReserva) {
     confirmacaoReserva.hidden = false;
+    confirmacaoReserva.style.display = "block";
+    confirmacaoReserva.style.visibility = "visible";
+    confirmacaoReserva.style.opacity = "1";
     confirmacaoReserva.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
@@ -531,8 +534,11 @@ formulario.addEventListener("submit", async function(evento) {
   if (botaoEnviarWhatsAppReserva) {
     botaoEnviarWhatsAppReserva.textContent = "ENVIAR AGENDAMENTO PELO WHATSAPP";
     botaoEnviarWhatsAppReserva.hidden = false;
+    botaoEnviarWhatsAppReserva.style.display = "block";
+    botaoEnviarWhatsAppReserva.style.visibility = "visible";
   }
   if (confirmacaoReserva) confirmacaoReserva.scrollIntoView({ behavior: "smooth", block: "center" });
+  alert("Agendamento realizado! A confirmação aparecerá na tela abaixo.");
 });
 
 console.log("Arruda Barber: sistema de agendamento carregado.");
