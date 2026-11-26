@@ -66,7 +66,9 @@ const campoCodigoCancelamento = document.getElementById("codigoCancelamento");
 const botaoCancelar = document.getElementById("botaoCancelar");
 const confirmacaoReserva = document.getElementById("confirmacaoReserva");
 const detalhesConfirmacao = document.getElementById("detalhesConfirmacao");
-const botaoEnviarWhatsAppReserva = document.getElementById("enviarWhatsAppReserva");\nconst botaoAdicionarAgendaReserva = document.getElementById("adicionarAgendaReserva");\nlet dadosReservaCalendario = null;
+const botaoEnviarWhatsAppReserva = document.getElementById("enviarWhatsAppReserva");
+const botaoAdicionarAgendaReserva = document.getElementById("adicionarAgendaReserva");
+let dadosReservaCalendario = null;
 let linkWhatsAppReserva = "";
 
 if (!formulario || !campoNome || !campoWhatsapp || !campoServico || !campoProfissional || !campoData || !campoHorario || !botao) {
@@ -272,6 +274,19 @@ if (botaoTentarHorarios) {
   botaoTentarHorarios.addEventListener("click", atualizarHorarios);
 }
 
+if (botaoAdicionarAgendaReserva) {
+  botaoAdicionarAgendaReserva.addEventListener("click", function() {
+    if (!dadosReservaCalendario) { alert("Não foi possível preparar os dados da agenda."); return; }
+    const inicio = dadosReservaCalendario.data.replace(/-/g,"") + "T" + dadosReservaCalendario.horario.replace(":","") + "00";
+    const fimMin = minutosHora(dadosReservaCalendario.horario) + dadosReservaCalendario.duracao;
+    const fim = dadosReservaCalendario.data.replace(/-/g,"") + "T" + String(Math.floor(fimMin/60)).padStart(2,"0") + String(fimMin%60).padStart(2,"0") + "00";
+    const titulo = "Arruda Barber - " + dadosReservaCalendario.servico;
+    const detalhes = "Profissional: " + dadosReservaCalendario.profissional + "\nValor: " + dadosReservaCalendario.valor + "\nAgendamento Arruda Barber";
+    const url = "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(titulo)+"&dates="+inicio+"/"+fim+"&details="+encodeURIComponent(detalhes);
+    window.open(url,"_blank");
+  });
+}
+
 if (botaoEnviarWhatsAppReserva) {
   botaoEnviarWhatsAppReserva.addEventListener("click", function() {
     if (!linkWhatsAppReserva) { alert("Link do WhatsApp ainda não foi preparado. Confira se o agendamento foi concluído."); return; }
@@ -321,12 +336,23 @@ if (botaoCancelar && campoCodigoCancelamento) {
         return;
       }
 
-      const mensagem = "Olá, " + cancelado.barber + "! Estou avisando que meu agendamento foi cancelado pelo site da Arruda Barber.\\n\\n" +
-        "Nome: " + (cancelado.client_name || "") + "\\n" +
-        "Serviço: " + (cancelado.service || "") + "\\n" +
-        "Data: " + dataFormatada + "\\n" +
-        "Horário: " + String(cancelado.start_time).slice(0, 5) + "\\n\\n" +
-        (cancelado.cancel_fee_applies ? "Cancelamento realizado com menos de 30 minutos de antecedência. A política da barbearia prevê taxa de R$ 15,00.\\n\\n" : "Cancelamento realizado com pelo menos 30 minutos de antecedência, sem taxa.\\n\\n") + "Cancelamento confirmado pelo site. Obrigado!";
+      const mensagem = "Olá, " + cancelado.barber + "! Estou avisando que meu agendamento foi cancelado pelo site da Arruda Barber.\
+\
+" +
+        "Nome: " + (cancelado.client_name || "") + "\
+" +
+        "Serviço: " + (cancelado.service || "") + "\
+" +
+        "Data: " + dataFormatada + "\
+" +
+        "Horário: " + String(cancelado.start_time).slice(0, 5) + "\
+\
+" +
+        (cancelado.cancel_fee_applies ? "Cancelamento realizado com menos de 30 minutos de antecedência. A política da barbearia prevê taxa de R$ 15,00.\
+\
+" : "Cancelamento realizado com pelo menos 30 minutos de antecedência, sem taxa.\
+\
+") + "Cancelamento confirmado pelo site. Obrigado!";
 
       const linkWhatsApp = "https://wa.me/" + telefone + "?text=" + encodeURIComponent(mensagem);
       alert("Agendamento cancelado! Vamos abrir o WhatsApp do profissional para avisar.");
@@ -495,14 +521,25 @@ formulario.addEventListener("submit", async function(evento) {
     ? window.location.origin + window.location.pathname + "?cancel=" + encodeURIComponent(tokenCancelamento) + "#cancelar"
     : "";
 
-  const mensagem = "Olá, " + profissional + "! Acabei de reservar um horário pelo site da Arruda Barber.\n\n" +
-    "Nome: " + nome + "\n" +
-    "Serviço: " + nomeServicoAgendamento(servico) + "\n" +
-    "Valor: " + precoTotalServico(servico).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "\n" +
-    "Duração: " + duracaoTotalServico(servico) + " minutos\n" +
-    "Data: " + dataFormatada + "\n" +
-    "Horário: " + horario + "\n\n" +
-    "Seu horário já está reservado!\n\n" +
+  const mensagem = "Olá, " + profissional + "! Acabei de reservar um horário pelo site da Arruda Barber.
+
+" +
+    "Nome: " + nome + "
+" +
+    "Serviço: " + nomeServicoAgendamento(servico) + "
+" +
+    "Valor: " + precoTotalServico(servico).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "
+" +
+    "Duração: " + duracaoTotalServico(servico) + " minutos
+" +
+    "Data: " + dataFormatada + "
+" +
+    "Horário: " + horario + "
+
+" +
+    "Seu horário já está reservado!
+
+" +
     (linkCancelamento
       ? "Quero cancelar meu horário: " + linkCancelamento
       : "Para cancelar, entre em contato com a barbearia.");
@@ -510,7 +547,8 @@ formulario.addEventListener("submit", async function(evento) {
   const telefoneProfissional = profissionais[profissional];
   const linkWhatsApp = "https://wa.me/" + telefoneProfissional + "?text=" + encodeURIComponent(mensagem);
 
-  linkWhatsAppReserva = linkWhatsApp;\n  dadosReservaCalendario = { data, horario, duracao: duracaoTotalServico(servico), profissional, servico: nomeServicoAgendamento(servico), valor: precoTotalServico(servico).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) };
+  linkWhatsAppReserva = linkWhatsApp;
+  dadosReservaCalendario = { data, horario, duracao: duracaoTotalServico(servico), profissional, servico: nomeServicoAgendamento(servico), valor: precoTotalServico(servico).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) };
 
   if (detalhesConfirmacao) {
     detalhesConfirmacao.textContent =
@@ -531,8 +569,7 @@ formulario.addEventListener("submit", async function(evento) {
   botao.textContent = "HORÁRIO RESERVADO";
 
   if (confirmacaoReserva) confirmacaoReserva.scrollIntoView({ behavior: "smooth", block: "center" });
-  alert("Agendamento realizado! Seu horário está reservado. Vamos abrir o WhatsApp do profissional para avisar.");
-  window.location.href = linkWhatsAppReserva;
+  alert("Agendamento realizado e reservado! Escolha abaixo se deseja adicionar à agenda ou avisar o profissional pelo WhatsApp.");
 });
 
 console.log("Arruda Barber: sistema de agendamento carregado.");
