@@ -695,3 +695,8 @@ button {
     font-size: 18px;
   }
 }
+
+/* Ações da confirmação do agendamento */
+.confirmacao-reserva button { min-height: 52px; font-weight: 800; letter-spacing: .3px; }
+#adicionarAgendaReserva { color: #080808; background: linear-gradient(110deg,#d4af37,#f5dc86); border: 1px solid #ffe9a0; }
+#enviarWhatsAppReserva { color: #fff; background: #202020; border: 1px solid #d4af37; }
