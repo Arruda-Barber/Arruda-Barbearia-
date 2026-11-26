@@ -345,14 +345,7 @@ formulario.addEventListener("submit", async function(evento) {
   if (botao.disabled) return;
 
   const nome = campoNome.value.trim();
-  let telefoneCliente = campoWhatsapp.value.replace(/\D/g, "");
-  if (telefoneCliente.length === 10 || telefoneCliente.length === 11) telefoneCliente = "55" + telefoneCliente;
-  if (!/^55[1-9][0-9][0-9]{8,9}$/.test(telefoneCliente)) {
-    alert("Informe um WhatsApp válido com DDD. Exemplo: (55) 99999-9999.");
-    campoWhatsapp.focus();
-    return;
-  }
-  const servico = campoServico.value;
+  let telefoneCliente = "";\n  const servico = campoServico.value;
   const profissional = campoProfissional.value;
   const data = campoData.value;
   const horario = campoHorario.value;
