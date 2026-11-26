@@ -34,7 +34,7 @@ function render(rows){
  }).join("");
 }
 async function load(silent=false){if(!silent)$("agendaMessage").textContent="Carregando horários...";try{const d=await api();barber=d.barber;$("barberName").textContent=barber;notifyNewBookings(d.bookings||[]);render(d.bookings||[]);if(!silent)$("agendaMessage").textContent="Agenda atualizada. Atualização automática a cada 15 segundos.";}catch(e){if(!silent)$("agendaMessage").textContent=e.message;if(/PIN|tentativas|bloqueado/i.test(e.message)){sessionStorage.removeItem("arruda_staff_pin");pin="";showLogin();}}}
-$("staffLogin").addEventListener("submit",async e=>{e.preventDefault();const value=$("staffPin").value.trim();if(!/^\d{6}$/.test(value))return;$("loginMessage").textContent="Verificando acesso...";pin=value;try{const d=await api();sessionStorage.setItem("arruda_staff_pin",pin);barber=d.barber;showAgenda();await load();startPolling();}catch(err){pin="";$("loginMessage").textContent=err.message;}});
+$("staffLogin").addEventListener("submit",async e=>{e.preventDefault();const value=$("staffPin").value.trim();if(!/^\d{6}$/.test(value))return;$("loginMessage").textContent="Verificando acesso...";pin=value;try{const d=await api();sessionStorage.setItem("arruda_staff_pin",pin);barber=d.barber;showAgenda();await load();await restoreSavedPush();startPolling();}catch(err){pin="";$("loginMessage").textContent=err.message;}});
 $("logout").addEventListener("click",()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";barber="";$("staffPin").value="";showLogin();$("loginMessage").textContent="Você saiu da sua agenda.";});
 $("refresh").addEventListener("click",load);
 const VAPID_PUBLIC_KEY="BMNeInES4l5-De3Hz49uz8os9owNcwB8S_Ii_Y8Fd_4AEwXim-xOnNjEreFSXMbdSkk0t7PU-7zotXAIPmDLqO0";
@@ -52,6 +52,23 @@ if(testButton){
    testButton.disabled=false;testButton.textContent="📲 Enviar notificação de teste";
   }
  });
+}
+async function restoreSavedPush(){
+ try{
+  if(!notifyButton || !pin || !("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
+  if(Notification.permission!=="granted"){notifyButton.textContent="🔔 Ativar notificações de novos agendamentos";return;}
+  const registration=await navigator.serviceWorker.register("./sw.js");
+  await navigator.serviceWorker.ready;
+  const subscription=await registration.pushManager.getSubscription();
+  if(subscription){
+   await api("subscribe-staff",{subscription:subscription.toJSON()});
+   notifyButton.textContent="✓ Notificações ativadas neste aparelho";
+   notifyButton.disabled=false;
+   $("agendaMessage").textContent="Notificações restauradas e sincronizadas para este aparelho.";
+  }else{
+   notifyButton.textContent="🔔 Ativar notificações de novos agendamentos";
+  }
+ }catch(e){console.warn("Reconciliação da inscrição push:",e);}
 }
 const notifyButton=$("enableNotifications");
 if(notifyButton){
@@ -109,4 +126,4 @@ $("bookingList").addEventListener("click",async e=>{
   catch(err){$("agendaMessage").textContent=err.message;decision.disabled=false;}
  }
 });
-if(pin){api().then(d=>{barber=d.barber;showAgenda();load();startPolling();}).catch(()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";showLogin();});}else showLogin();
+if(pin){api().then(d=>{barber=d.barber;showAgenda();load();restoreSavedPush();startPolling();}).catch(()=>{sessionStorage.removeItem("arruda_staff_pin");pin="";showLogin();});}else showLogin();
