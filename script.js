@@ -202,8 +202,20 @@ async function atualizarHorarios() {
     try {
       ocupados = await consultar("get_busy_intervals_v2");
     } catch (erroV2) {
-      console.warn("RPC v2 falhou; fallback:", erroV2);
-      ocupados = await consultar("get_busy_intervals");
+      console.warn("RPC v2 falhou; tentando RPC legado:", erroV2);
+      try {
+        ocupados = await consultar("get_busy_intervals");
+      } catch (erroRPC) {
+        console.warn("RPCs falharam; consultando tabela diretamente:", erroRPC);
+        const respostaDireta = await db.from("barber_bookings")
+          .select("start_time,end_time")
+          .eq("booking_date", data)
+          .eq("barber", profissional)
+          .in("status", ["pending", "confirmed"])
+          .order("start_time");
+        if (respostaDireta.error) throw respostaDireta.error;
+        ocupados = respostaDireta.data || [];
+      }
     }
     if (versaoAtual !== versaoConsultaHorarios) return;
     if (!Array.isArray(ocupados)) throw new Error("Resposta da agenda em formato inesperado.");
