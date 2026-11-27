@@ -4,7 +4,7 @@ const barbers={Arruda:"5555992294941",Felipe:"5555991274993",Thalita:"5555991692
 const services={"Corte degradê":[35,30],"Corte infantil":[35,30],"Corte degradê (navalhado)":[40,35],"Corte social":[35,30],"Cabelo e barba":[55,50],"Cabelo, barba e sobrancelha":[60,55],"Corte 2 pentes":[25,20],"Corte 1 pente":[20,15],"Pezinhos":[15,10],"Sobrancelha":[10,10],"Barba":[25,20]};
 const addonServices=Object.keys(services).filter(x=>!["Pezinhos","Sobrancelha","Barba","Cabelo, barba e sobrancelha"].includes(x));
 const $=id=>document.getElementById(id), name=$("name"), service=$("service"), barber=$("barber"), date=$("date"), time=$("time"), addon=$("addon"), message=$("message");
-Object.entries(services).forEach(([s])=>service.add(new Option(s,s)));
+if(service.options.length<=1)Object.entries(services).forEach(([s])=>service.add(new Option(s,s)));
 $("addonWrap").style.display="block";
 function localNow(){let p=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());return p;}
 date.min=localNow();
