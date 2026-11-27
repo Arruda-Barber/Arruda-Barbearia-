@@ -191,22 +191,11 @@ async function atualizarHorarios() {
   campoHorario.dataset.consultaErro = "";
 
   try {
-    // Consulta direta ao endpoint REST, evitando depender da camada RPC do cliente JS.
+    // Consulta usando o cliente Supabase oficial, que gerencia cabeçalhos e erros PostgREST.
     async function consultar(funcao) {
-      const response = await fetch(SUPABASE_URL + "/rest/v1/rpc/" + funcao, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_KEY,
-          "Authorization": "Bearer " + SUPABASE_KEY,
-          "Content-Type": "application/json",
-          "Accept-Profile": "public",
-          "Content-Profile": "public"
-        },
-        body: JSON.stringify({ p_date: data, p_barber: profissional })
-      });
-      const body = await response.text();
-      if (!response.ok) throw new Error("HTTP " + response.status + ": " + body.slice(0, 220));
-      return body ? JSON.parse(body) : [];
+      const resposta = await db.rpc(funcao, { p_date: data, p_barber: profissional });
+      if (resposta.error) throw resposta.error;
+      return resposta.data || [];
     }
 
     let ocupados;
