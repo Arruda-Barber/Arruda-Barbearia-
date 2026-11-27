@@ -252,6 +252,8 @@ async function atualizarHorarios() {
     if (botaoTentarHorarios) botaoTentarHorarios.hidden = false;
   }
 }
+window.arrudaAtualizarHorarios = atualizarHorarios;
+
 campoData.addEventListener("change", function() {
   // Mantém a data visível para que o seletor do celular continue editável.
   // Dias fechados apenas não exibem horários; o cliente pode escolher outra data.
