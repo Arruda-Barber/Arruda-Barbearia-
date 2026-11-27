@@ -1,4 +1,4 @@
-const CACHE_NAME = "arruda-barber-android-v40";
+const CACHE_NAME = "arruda-barber-android-v41";
 
 const ARQUIVOS = [
   "./",
