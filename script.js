@@ -190,6 +190,7 @@ async function atualizarHorarios() {
   }
 
   campoHorario.innerHTML = '<option value="">Carregando horários...</option>';
+  campoHorario.dataset.consultaErro = "";
 
   try {
     let resposta = await db.rpc("get_busy_intervals_v2", {
@@ -250,7 +251,9 @@ async function atualizarHorarios() {
   } catch (erro) {
     console.error("Falha ao consultar horários:", erro);
     if (versaoAtual !== versaoConsultaHorarios) return;
-    campoHorario.innerHTML = '<option value="">Não foi possível carregar os horários</option>';
+    const detalhe = (erro && (erro.message || erro.details || erro.hint || erro.code)) ? String(erro.message || erro.details || erro.hint || erro.code) : "Erro desconhecido";
+    campoHorario.dataset.consultaErro = detalhe;
+    campoHorario.innerHTML = '<option value="">Falha: ' + detalhe.replace(/[<>&"]/g, "") + '</option>';
     if (botaoTentarHorarios) botaoTentarHorarios.hidden = false;
   }
 }
