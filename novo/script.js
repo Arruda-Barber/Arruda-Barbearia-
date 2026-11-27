@@ -31,7 +31,7 @@ async function loadTimes(){
  if(request!==timesRequest)return;
  let day=new Date(chosenDate+"T12:00:00").getDay(),slots=[],n=nowParts(),dur=chosenDuration;
  for(let period of [[540,720],[840,day===6?1140:1170]]){
-  for(let m=period[0];m+dur<=period[1]&&(period[0]!==540||m<=690);m+=15){
+  for(let m=period[0];m+dur<=period[1];m+=15){
    if(chosenDate<n.date||(chosenDate===n.date&&m<=n.min))continue;
    let finish=m+dur;if(busy.some(x=>m<hm(x.end_time)&&finish>hm(x.start_time)))continue;
    slots.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));
