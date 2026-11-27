@@ -178,12 +178,10 @@ async function atualizarHorarios() {
   const profissional = campoProfissional.value;
 
   if (botaoTentarHorarios) botaoTentarHorarios.hidden = true;
-
   if (!data || !servico || !profissional) {
     campoHorario.innerHTML = '<option value="">Escolha data, serviço e profissional</option>';
     return;
   }
-
   if (!diaPermitido(data, profissional)) {
     campoHorario.innerHTML = '<option value="">Profissional não atende neste dia</option>';
     return;
@@ -193,71 +191,66 @@ async function atualizarHorarios() {
   campoHorario.dataset.consultaErro = "";
 
   try {
-    let resposta = await db.rpc("get_busy_intervals_v2", {
-      p_date: data,
-      p_barber: profissional
-    });
-    // Fallback para a função anterior, caso a consulta v2 falhe por cache/schema da API.
-    if (resposta.error) {
-      console.warn("Consulta v2 falhou; tentando função compatível:", resposta.error);
-      resposta = await db.rpc("get_busy_intervals", {
-        p_date: data,
-        p_barber: profissional
+    // Consulta direta ao endpoint REST, evitando depender da camada RPC do cliente JS.
+    async function consultar(funcao) {
+      const response = await fetch(SUPABASE_URL + "/rest/v1/rpc/" + funcao, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": "Bearer " + SUPABASE_KEY,
+          "Content-Type": "application/json",
+          "Accept-Profile": "public",
+          "Content-Profile": "public"
+        },
+        body: JSON.stringify({ p_date: data, p_barber: profissional })
       });
+      const body = await response.text();
+      if (!response.ok) throw new Error("HTTP " + response.status + ": " + body.slice(0, 220));
+      return body ? JSON.parse(body) : [];
     }
 
+    let ocupados;
+    try {
+      ocupados = await consultar("get_busy_intervals_v2");
+    } catch (erroV2) {
+      console.warn("RPC v2 falhou; fallback:", erroV2);
+      ocupados = await consultar("get_busy_intervals");
+    }
     if (versaoAtual !== versaoConsultaHorarios) return;
-    if (resposta.error) throw resposta.error;
+    if (!Array.isArray(ocupados)) throw new Error("Resposta da agenda em formato inesperado.");
 
-    const ocupados = Array.isArray(resposta.data) ? resposta.data : [];
     const duracao = duracaoTotalServico(servico);
     const agora = dataHoraSaoPaulo();
     const horarios = [];
-
     function adicionarPeriodo(inicio, fim) {
       for (let minuto = inicio; minuto <= fim; minuto += 15) {
         if (data < agora.data || (data === agora.data && minuto <= agora.minutos)) continue;
-
         const fimSlot = minuto + duracao;
         const conflito = ocupados.some(function(item) {
           const inicioOcupado = minutosHora(item.start_time);
           const fimOcupado = minutosHora(item.end_time);
           return minuto < fimOcupado && fimSlot > inicioOcupado;
         });
-
         if (!conflito) horarios.push(String(Math.floor(minuto / 60)).padStart(2, "0") + ":" + String(minuto % 60).padStart(2, "0"));
       }
     }
-
     const dia = new Date(data + "T12:00:00").getDay();
     adicionarPeriodo(9 * 60, 11 * 60 + 30);
-
-    if (dia === 6) {
-      adicionarPeriodo(14 * 60, 19 * 60);
-    } else {
-      adicionarPeriodo(14 * 60, 19 * 60 + 30);
-    }
-
+    adicionarPeriodo(14 * 60, dia === 6 ? 19 * 60 : 19 * 60 + 30);
     if (versaoAtual !== versaoConsultaHorarios) return;
 
     campoHorario.innerHTML = '<option value="">Escolha um horário</option>';
-    horarios.forEach(function(horario) {
-      campoHorario.add(new Option(horario, horario));
-    });
-
-    if (!horarios.length) {
-      campoHorario.innerHTML = '<option value="">Não há horários disponíveis</option>';
-    }
+    horarios.forEach(function(horario) { campoHorario.add(new Option(horario, horario)); });
+    if (!horarios.length) campoHorario.innerHTML = '<option value="">Não há horários disponíveis</option>';
   } catch (erro) {
     console.error("Falha ao consultar horários:", erro);
     if (versaoAtual !== versaoConsultaHorarios) return;
-    const detalhe = (erro && (erro.message || erro.details || erro.hint || erro.code)) ? String(erro.message || erro.details || erro.hint || erro.code) : "Erro desconhecido";
+    const detalhe = String(erro && erro.message ? erro.message : "Erro desconhecido");
     campoHorario.dataset.consultaErro = detalhe;
     campoHorario.innerHTML = '<option value="">Falha: ' + detalhe.replace(/[<>&"]/g, "") + '</option>';
     if (botaoTentarHorarios) botaoTentarHorarios.hidden = false;
   }
 }
-
 campoData.addEventListener("change", function() {
   // Mantém a data visível para que o seletor do celular continue editável.
   // Dias fechados apenas não exibem horários; o cliente pode escolher outra data.
